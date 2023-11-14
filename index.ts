@@ -12,6 +12,7 @@ const corsOptions = require('./config/corsOptions');
 const redis = require('./helpers/redis');
 
 // Middlewares
+const verifyJWT = require('./middleware/verifyJWT');
 const credentials = require('./middleware/credentials');
 const errorHandler = require('./middleware/errorHandler')
 
@@ -27,6 +28,8 @@ app.use("/static", express.static(path.join(__dirname, "public")));
 const authRoutes = require('./routes/auth')
 
 app.use('/oauth', authRoutes);
+
+app.use(verifyJWT);  
 
 app.get('/', (req: Request, res: Response) => {
     res.send('Express + Typesciprt Server')
