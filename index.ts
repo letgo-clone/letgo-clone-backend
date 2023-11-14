@@ -8,6 +8,9 @@ const PORT = 8080;
 import cors from 'cors';
 const corsOptions = require('./config/corsOptions');
 
+// Redis
+const redis = require('./helpers/redis');
+
 // Middlewares
 const credentials = require('./middleware/credentials');
 const errorHandler = require('./middleware/errorHandler')
@@ -32,6 +35,12 @@ app.get('/', (req: Request, res: Response) => {
 app.use(errorHandler);
 
 const startUp = async () => {
+    try {
+        await redis.RedisClient.connect();
+    }
+    catch(err){
+        console.error(err);
+    }
 
     app.listen(PORT, () => {
         console.log('started at ' + PORT);
