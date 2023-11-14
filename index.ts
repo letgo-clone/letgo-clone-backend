@@ -10,6 +10,7 @@ const corsOptions = require('./config/corsOptions');
 
 // Middlewares
 const credentials = require('./middleware/credentials');
+const errorHandler = require('./middleware/errorHandler')
 
 app.use(credentials);
 app.use(cors(corsOptions));
@@ -28,8 +29,10 @@ app.get('/', (req: Request, res: Response) => {
     res.send('Express + Typesciprt Server')
 });
 
+app.use(errorHandler);
 
 const startUp = async () => {
+
     app.listen(PORT, () => {
         console.log('started at ' + PORT);
     })
