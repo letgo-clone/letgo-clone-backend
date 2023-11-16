@@ -4,6 +4,8 @@ import path from 'path';
 const app: Express = express();
 const PORT = 8080;
 
+const mongoClient = require('./helpers/mongodb');
+
 // Cors
 import cors from 'cors';
 const corsOptions = require('./config/corsOptions');
@@ -40,6 +42,9 @@ app.use(errorHandler);
 const startUp = async () => {
     try {
         await redis.RedisClient.connect();
+
+        await mongoClient;
+        console.log('mongodb is connected');
     }
     catch(err){
         console.error(err);
