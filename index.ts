@@ -27,11 +27,14 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use("/static", express.static(path.join(__dirname, "public")));
 
-const authRoutes = require('./routes/auth')
+const authRoutes = require('./routes/auth');
+const advertRoutes = require('./routes/advert');
 
 app.use('/oauth', authRoutes);
 
 app.use(verifyJWT);  
+
+app.use('/advert', advertRoutes);
 
 app.get('/', (req: Request, res: Response) => {
     res.send('Express + Typesciprt Server')
