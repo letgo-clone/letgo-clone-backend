@@ -95,6 +95,57 @@ exports.handleToken = async function (req: Request, res: Response, next: NextFun
                     }
                    
                 }
+                else if(grant_type == 'refresh_token'){
+                    const refresh_token = req.body.refresh_token;
+                    const getRedisData = await redis.RedisClient.get('currentUser');
+                    const parseUser = JSON.parse(getRedisData);
+
+                    if (!parseUser) {
+                        throw new CustomError(401, "The provided authorization grant (e.g., authorization code, resource owner credentials) or refresh token is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client", 'invalid_grant');
+                    }
+
+                    if (!refresh_token) {
+                        throw new CustomError(401);
+                    }
+
+                    if (parseUser.refresh_token !== refresh_token) {
+                        throw new CustomError(401, "The provided authorization grant (e.g., authorization code, resource owner credentials) or refresh token is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client", 'invalid_grant');
+                    }
+
+                    jwt.verify(
+                        refresh_token,
+                        process.env.REFRESH_TOKEN_SECRET,
+                        (err: Error | any, decoded: any) => {
+                            if(err || parseUser.username !== decoded.username) throw new CustomError(403);
+
+                            const access_token = jwt.sign(
+                                {
+                                    "username": decoded.username
+                                },
+                                process.env.ACCESS_TOKEN_SECRET,
+                                { expiresIn: expires_in }
+                            );
+                            const refresh_token = jwt.sign(
+                                {
+                                    "username": decoded.username
+                                },
+                                process.env.REFRESH_TOKEN_SECRET,
+                                { expiresIn: expires_in }
+                            );
+                            const current_username = parseUser.username
+                            
+                            const currentUser = {
+                                access_token,
+                                refresh_token,
+                                current_username
+                            }; 
+    
+                            redis.setValue('currentUser', expires_in, currentUser); 
+
+                            res.status(200).json({ access_token, expires_in, refresh_token, token_type: 'Bearer' });
+                        }
+                    )
+                }
                 else {
                     throw new CustomError(400, "The authorization grant type is not supported by the authorization server", 'unsupported_grant_type');
                 }
