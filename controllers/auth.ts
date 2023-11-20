@@ -1,7 +1,10 @@
 import express, { Request, Response, NextFunction } from 'express';
+const {Advert} = require("../models/advert");
+const {User} = require("../models/user");
 
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const bcrypt = require("bcrypt");
 
 const redis = require('../helpers/redis');
 
@@ -45,6 +48,62 @@ exports.handleToken = async function (req: Request, res: Response, next: NextFun
 
                     res.status(200).json({ access_token, expires_in, token_type: 'Bearer', scope : 'user' });
                 }
+                else if(grant_type == 'password') {
+                    const username = req.body.username;
+                    const password = req.body.password;
+
+                    if (!username || !password) {
+                        throw new CustomError(401, "Email adresiniz veya şifreniz yanlış olabilir.", 'invalid_grant');
+                    }
+
+                    const user = await User.findOne({ email: username });
+                    
+                    if(!user) {
+                        throw new CustomError(401, "Email adresiniz veya şifreniz yanlış olabilir.", 'invalid_grant');
+                    }
+
+                    const match = await bcrypt.compare(password, user.password);
+
+                    if(match){
+                        const access_token = jwt.sign(
+                            {
+                                "UserInfo": {
+                                    "username": username
+                                }
+                            },
+                            process.env.ACCESS_TOKEN_SECRET,
+                            { expiresIn: expires_in }
+                        );
+
+                        const refresh_token = jwt.sign(
+                            {
+                                "UserInfo": {
+                                    "username": username
+                                }
+                            },
+                            process.env.REFRESH_TOKEN_SECRET,
+                            { expiresIn: expires_in }
+                        );
+
+                        const currentUser = {
+                            access_token,
+                            refresh_token,
+                            username
+                        };
+
+                        redis.setValue('currentUser', expires_in, currentUser); 
+
+                        res.status(200).json({ access_token, expires_in, refresh_token, token_type: 'Bearer' });
+
+                    }
+                    else {
+                        throw new CustomError(401, "Email adresiniz veya şifreniz yanlış olabilir.", 'invalid_grant');
+                    }
+                   
+                }
+                else {
+                    throw new CustomError(400, "The authorization grant type is not supported by the authorization server", 'unsupported_grant_type');
+                }
             }
 
         }
@@ -52,5 +111,4 @@ exports.handleToken = async function (req: Request, res: Response, next: NextFun
     } catch(err) {
         next(err);
     }
-
 }
