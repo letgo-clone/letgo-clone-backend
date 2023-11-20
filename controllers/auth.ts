@@ -32,9 +32,7 @@ exports.handleToken = async function (req: Request, res: Response, next: NextFun
                 {
                     const access_token = jwt.sign(
                         {
-                            "UserInfo": {
-                                "username": 'public'
-                            }
+                            "username": 'public'
                         },
                         process.env.ACCESS_TOKEN_SECRET,
                         { expiresIn: expires_in }
@@ -67,9 +65,7 @@ exports.handleToken = async function (req: Request, res: Response, next: NextFun
                     if(match){
                         const access_token = jwt.sign(
                             {
-                                "UserInfo": {
-                                    "username": username
-                                }
+                                "username": username
                             },
                             process.env.ACCESS_TOKEN_SECRET,
                             { expiresIn: expires_in }
@@ -77,9 +73,7 @@ exports.handleToken = async function (req: Request, res: Response, next: NextFun
 
                         const refresh_token = jwt.sign(
                             {
-                                "UserInfo": {
-                                    "username": username
-                                }
+                                "username": username
                             },
                             process.env.REFRESH_TOKEN_SECRET,
                             { expiresIn: expires_in }
