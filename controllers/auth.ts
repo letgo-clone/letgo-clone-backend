@@ -1,12 +1,11 @@
-import express, { Request, Response, NextFunction } from 'express';
-const {Advert} = require("../models/advert");
-const {User} = require("../models/user");
+import { Request, Response, NextFunction } from 'express';
 
-const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const bcrypt = require("bcrypt");
+const jwt = require('jsonwebtoken');
 
 const redis = require('../helpers/redis');
+const pool = require('../helpers/postgre');
 
 const CustomError = require('../errors/CustomError');
 
@@ -27,26 +26,8 @@ exports.handleToken = async function (req: Request, res: Response, next: NextFun
                 throw new CustomError(400, "Client authentication failed", 'invalid_client'); 
             }
             else{
-                
-                if(grant_type === 'client_credentials')
-                {
-                    const access_token = jwt.sign(
-                        {
-                            "username": 'public'
-                        },
-                        process.env.ACCESS_TOKEN_SECRET,
-                        { expiresIn: expires_in }
-                    );
-                    
-                    const currentUser = {
-                        access_token
-                    };
 
-                    redis.setValue('currentUser', expires_in, currentUser);
-
-                    res.status(200).json({ access_token, expires_in, token_type: 'Bearer', scope : 'user' });
-                }
-                else if(grant_type == 'password') {
+                if(grant_type == 'password') {
                     const username = req.body.username;
                     const password = req.body.password;
 
@@ -54,8 +35,10 @@ exports.handleToken = async function (req: Request, res: Response, next: NextFun
                         throw new CustomError(401, "Email adresiniz veya şifreniz yanlış olabilir.", 'invalid_grant');
                     }
 
-                    const user = await User.findOne({ email: username });
-                    
+                    const sqlQuery = "SELECT * FROM users WHERE email = $1";
+                    const data = await pool.query(sqlQuery, [username]);
+                    const user = data.rows[0];
+
                     if(!user) {
                         throw new CustomError(401, "Email adresiniz veya şifreniz yanlış olabilir.", 'invalid_grant');
                     }
@@ -84,12 +67,11 @@ exports.handleToken = async function (req: Request, res: Response, next: NextFun
                             refresh_token,
                             username
                         };
-
+                        
                         redis.setValue('currentUser', expires_in, currentUser); 
 
                         res.status(200).json({ access_token, expires_in, refresh_token, token_type: 'Bearer' });
-
-                    }
+                    } 
                     else {
                         throw new CustomError(401, "Email adresiniz veya şifreniz yanlış olabilir.", 'invalid_grant');
                     }
