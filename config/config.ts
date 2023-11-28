@@ -3,6 +3,8 @@ const config: {
         password: string
         username: string
         database: string
+        host: string
+        port: number
     },
     redis: {
         password: string
@@ -12,8 +14,10 @@ const config: {
 } = {
     db: {
         password: '',
-        username: '',
-        database: 'letgo_clone'
+        username: 'firatyildiz',
+        database: 'letgo_clone',
+        host: '127.0.0.1',
+        port: 5431
     },
     redis: {
         password: '',
