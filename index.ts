@@ -36,10 +36,6 @@ app.use(verifyJWT);
 
 app.use('/advert', advertRoutes);
 
-app.get('/', (req: Request, res: Response) => {
-    res.send('Express + Typesciprt Server')
-});
-
 app.use(errorHandler);
 
 const startUp = async () => {
