@@ -28,10 +28,13 @@ app.use("/static", express.static(path.join(__dirname, "public")));
 
 const authRoutes = require('./routes/auth');
 const advertRoutes = require('./routes/advert');
+const memberRoutes = require('./routes/member')
 
 app.use('/oauth', authRoutes);
 app.use('/advert', advertRoutes);
 app.use(verifyJWT);  
+
+app.use('/account', memberRoutes);
 
 app.use(errorHandler);
 
