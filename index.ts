@@ -30,10 +30,8 @@ const authRoutes = require('./routes/auth');
 const advertRoutes = require('./routes/advert');
 
 app.use('/oauth', authRoutes);
-
-app.use(verifyJWT);  
-
 app.use('/advert', advertRoutes);
+app.use(verifyJWT);  
 
 app.use(errorHandler);
 
