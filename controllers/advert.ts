@@ -115,7 +115,7 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
         }
 
         const insertQuery = 'INSERT INTO adverts(title, description, user_id, images, parameters, price, city_id, county_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *';
-        const values = [title, description, user_id, JSON.stringify(images), JSON.stringify(parameters), price, city_id, county_id];
+        const values = [title, description, user_id, images, parameters, price, city_id, county_id];
 
         const status = await pool.query(insertQuery, values);
         const advert_id = status.rows[0].id;
