@@ -125,3 +125,43 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
         next(err)
     }
 }
+
+exports.getLocationCity =  async function (req: Request, res: Response, next: NextFunction) {
+    try {
+        const data = await pool.query(`
+            SELECT 
+                * 
+            FROM 
+                cities
+        `);
+        const response = data.rows;
+
+        return res.status(200).json(response);
+
+    }catch(err){
+        next(err)
+    }
+}
+
+exports.getCountyForCity =  async function (req: Request, res: Response, next: NextFunction) {
+    const city_id = req.params.city_id;
+
+    try {
+        const sqlQuery = `
+            SELECT 
+                id,
+                county
+            FROM 
+                counties
+            WHERE
+                city_id = $1
+        `
+        const data = await pool.query(sqlQuery, [city_id]);
+        const response = data.rows;
+
+        return res.status(200).json(response);
+
+    }catch(err){
+        next(err)
+    }
+}
