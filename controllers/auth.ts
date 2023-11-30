@@ -61,11 +61,14 @@ exports.handleToken = async function (req: Request, res: Response, next: NextFun
                             process.env.REFRESH_TOKEN_SECRET,
                             { expiresIn: expires_in }
                         );
+                        
+                        const user_id = user.id;
 
                         const currentUser = {
                             access_token,
                             refresh_token,
-                            username
+                            username,
+                            user_id
                         };
                         
                         redis.setValue('currentUser', expires_in, currentUser); 
@@ -114,12 +117,14 @@ exports.handleToken = async function (req: Request, res: Response, next: NextFun
                                 process.env.REFRESH_TOKEN_SECRET,
                                 { expiresIn: expires_in }
                             );
-                            const current_username = parseUser.username
+                            const username = parseUser.username;
+                            const user_id = parseUser.user_id
                             
                             const currentUser = {
                                 access_token,
                                 refresh_token,
-                                current_username
+                                username,
+                                user_id
                             }; 
     
                             redis.setValue('currentUser', expires_in, currentUser); 
