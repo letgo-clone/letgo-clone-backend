@@ -3,6 +3,7 @@ const CustomError = require('../errors/CustomError');
 
 const pool = require('../helpers/postgre');
 const redis = require('../helpers/redis');
+const Image = require('../helpers/uploadImage');
 
 exports.getActualAdvert = async function (req: Request, res: Response, next: NextFunction) {
     try {
@@ -73,13 +74,14 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
     const parseUser = JSON.parse(getRedisData);
 
     const user_id = parseUser.user_id;
+    const email =  parseUser.username;
     const title = req.body.title;
     const description = req.body.description;
-    const images = req.body.images;
     const parameters = req.body.parameters;
     const price = req.body.price;
     const city_id = req.body.city_id;
     const county_id = req.body.county_id;
+    const advertImages = req.files;
 
     try {
         if (!user_id || user_id == '') {
@@ -94,7 +96,7 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
             throw new CustomError(400, "description alanını belirtmelisiniz.");
         }
 
-        if (!images) {
+        if (!advertImages) {
             throw new CustomError(400, "images alanını belirtmelisiniz.");
         }
 
@@ -114,8 +116,11 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
             throw new CustomError(400, "county_id alanını belirtmelisiniz.");
         }
 
+         const advertImagesResponse = await Image.uploadMultipleImages(advertImages, 'members/' + email  + '/adverts/' + title + '/' , title);
+
+
         const insertQuery = 'INSERT INTO adverts(title, description, user_id, images, parameters, price, city_id, county_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *';
-        const values = [title, description, user_id, images, parameters, price, city_id, county_id];
+        const values = [title, description, user_id, JSON.stringify(advertImagesResponse), parameters, price, city_id, county_id];
 
         const status = await pool.query(insertQuery, values);
         const advert_id = status.rows[0].id;
