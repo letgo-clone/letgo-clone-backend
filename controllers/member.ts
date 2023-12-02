@@ -23,7 +23,18 @@ exports.get_member = async function (req: Request, res: Response, next: NextFunc
             throw new CustomError(403, "Client authentication failed", 'invalid_client');
         }
 
-        const sqlQuery = "SELECT u.name, u.surname, u.photo, u.email, u.phone_number FROM users u WHERE u.is_deleted = FALSE AND u.email = $1";
+        const sqlQuery = `
+            SELECT 
+                CONCAT(u.name, ' ', u.surname) as fullname,
+                u.photo, 
+                u.email
+            FROM 
+                users u 
+            WHERE 
+                u.is_deleted = FALSE 
+            AND 
+                u.email = $1
+            `;
 
         const data = await pool.query(sqlQuery, [email]); 
         const user = data.rows[0];
