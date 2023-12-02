@@ -5,5 +5,6 @@ const memberController = require("../controllers/member");
 const multer = require('../helpers/multer');
 
 router.get("/session", memberController.get_member);
+router.put('/session/user', multer.body_parse.array(), memberController.put_member)
 
 module.exports = router;
