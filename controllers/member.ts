@@ -57,8 +57,7 @@ exports.put_member = async function(req: Request, res: Response, next: NextFunct
     const current_email = currentUser.username 
     const user_id = currentUser.user_id
 
-    let name = req.body.name;
-    let surname = req.body.surname;
+    let fullname = req.body.fullname;
     let email = req.body.email;
     let password = req.body.password;
     let photo = req.body.photo;
@@ -68,8 +67,7 @@ exports.put_member = async function(req: Request, res: Response, next: NextFunct
     try {
        const oldDataQuery = `
             SELECT 
-                name,
-                surname,
+                fullname,
                 photo,
                 email,
                 about,
@@ -84,8 +82,7 @@ exports.put_member = async function(req: Request, res: Response, next: NextFunct
         const statusOldData = await pool.query(oldDataQuery, [current_email]);
         const responseOldData = statusOldData.rows[0];
         
-        name = !name || name == '' ? responseOldData.name : name;
-        surname = !surname || surname == '' ? responseOldData.surname : surname;
+        fullname = !fullname || fullname == '' ? responseOldData.fullname : fullname;
         email = !email || email == '' ? responseOldData.email : email;
         photo = !photo || photo == '' ? responseOldData.photo : photo;
         about = !about || about == '' ? responseOldData.about : about;
@@ -101,20 +98,18 @@ exports.put_member = async function(req: Request, res: Response, next: NextFunct
             UPDATE
                 users
             SET
-                name = $1,
-                surname = $2,
-                email = $3,
-                photo = $4,
-                about = $5,
-                phone_number = $6,
-                password = $7
+                fullname = $1,
+                email = $2,
+                photo = $3,
+                about = $4,
+                phone_number = $5,
+                password = $6
             WHERE
-                id = $8
+                id = $7
         `;
 
         await pool.query(updateQuery, [
-            name,
-            surname,
+            fullname,
             email,
             photo,
             about,
@@ -122,7 +117,6 @@ exports.put_member = async function(req: Request, res: Response, next: NextFunct
             password,
             user_id
         ]);
-        
 
         return res.status(200).json({'success': 'true'});
 
