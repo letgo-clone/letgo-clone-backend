@@ -25,7 +25,7 @@ exports.get_member = async function (req: Request, res: Response, next: NextFunc
 
         const sqlQuery = `
             SELECT 
-                CONCAT(u.name, ' ', u.surname) as fullname,
+                fullname,
                 u.photo, 
                 u.email
             FROM 
