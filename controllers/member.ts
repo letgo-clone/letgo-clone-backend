@@ -140,7 +140,10 @@ exports.get_user_info = async function(req:Request, res:Response, next: NextFunc
                 users
             WHERE
                 id = $1
+            AND
+                is_deleted = FALSE
         `;
+        
         const userResult = await pool.query(userQuery, [userId]);
         const userData = userResult.rows[0]; 
 
@@ -150,20 +153,33 @@ exports.get_user_info = async function(req:Request, res:Response, next: NextFunc
 
         const advertQuery = `
             SELECT 
-                *
+                ad.id, 
+                ad.title, 
+                to_char(ad.created_at,'DD Month') as date, 
+                ad.description,
+                ad.images,
+                ad.price,
+                ads.display_type, 
+                ads.display_name
             FROM
                 adverts ad
             LEFT JOIN
-                users u
-            ON 
-                u.id = ad.user_id
+                users u ON u.id = ad.user_id
+            LEFT JOIN 
+                advert_status ads ON ads.id = ad.status_id 
             WHERE
                 ad.user_id = $1
+            AND
+                ad.is_deleted = FALSE 
+            AND 
+                ad.is_verify = TRUE
+            AND
+                ads.is_visible = TRUE 
         `;
         const advertResult = await pool.query(advertQuery, [userId]);
         const advertData = advertResult.rows;
 
-        return res.status(200).json({userData, advertData });
+        return res.status(200).json({ userData, advertData });
 
     }catch(err){
         next(err)
