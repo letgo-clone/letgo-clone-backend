@@ -14,4 +14,6 @@ router.post('/actual', verifyJWT, multer.image_upload.array('photo'), advertCont
 router.get('/location', advertController.getLocationCity);
 router.get('/location/:city_id', advertController.getCountyForCity);
 
+router.patch('/favorite/:advert_id', verifyJWT, multer.body_parse.any(), advertController.patchFavoriteAdvert)
+
 module.exports = router;

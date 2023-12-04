@@ -200,3 +200,66 @@ exports.getCountyForCity =  async function (req: Request, res: Response, next: N
         next(err)
     }
 }
+
+exports.patchFavoriteAdvert =  async function (req: Request, res: Response, next: NextFunction) {
+    const getRedisData = await redis.RedisClient.get('currentUser')
+    const currentUser = JSON.parse(getRedisData);
+
+    const advertId = req.params.advert_id;
+    const userId = currentUser.user_id;
+    const op = req.body.op;
+    const path = req.body.path;
+
+    try {
+        if(path !== 'has_advert_favorite'){
+            throw new CustomError(403); 
+        }
+
+        const sqlQuery = `
+            SELECT 
+                favorite_id
+            FROM
+                advert_favorites
+            WHERE 
+                user_id = $1
+            AND
+                advert_id = $2
+        `;
+
+        const responseData = await pool.query(sqlQuery, [userId, advertId]);
+        const result = responseData.rows[0];
+
+        if(result && op == 'remove'){
+            const favoriteId = result.favorite_id;
+             const deleteQuery = `
+                DELETE FROM
+                    advert_favorites
+                WHERE
+                    favorite_id = $1
+            `;
+            await pool.query(deleteQuery, [favoriteId]);
+
+            return res.status(202).json({ 'success': true })
+        }
+        else if (!result && op == 'add'){
+            const insertQuery = `
+                INSERT INTO
+                    advert_favorites
+                    (user_id, advert_id) 
+                VALUES
+                    ($1, $2)
+                RETURNING *
+            `;
+            await pool.query(insertQuery, [userId, advertId]);
+
+            return res.status(201).json({ 'success': true })
+        }
+        else{
+            throw new CustomError(404, "NOT FOUND");
+        }
+   
+    }
+    catch (err){
+        next(err);
+    }
+}
