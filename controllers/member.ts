@@ -126,3 +126,46 @@ exports.put_member = async function(req: Request, res: Response, next: NextFunct
         next(err)
     }
 }
+
+exports.get_user_info = async function(req:Request, res:Response, next: NextFunction) {
+    const userId = req.params.user_id;
+
+    try {
+        const userQuery = `
+            SELECT
+                fullname,
+                to_char(created_at,'DD Month') as date,
+                photo
+            FROM
+                users
+            WHERE
+                id = $1
+        `;
+        const userResult = await pool.query(userQuery, [userId]);
+        const userData = userResult.rows[0]; 
+
+        if(!userData){
+            throw new CustomError(404, "The user not found");
+        }
+
+        const advertQuery = `
+            SELECT 
+                *
+            FROM
+                adverts ad
+            LEFT JOIN
+                users u
+            ON 
+                u.id = ad.user_id
+            WHERE
+                ad.user_id = $1
+        `;
+        const advertResult = await pool.query(advertQuery, [userId]);
+        const advertData = advertResult.rows;
+
+        return res.status(200).json({userData, advertData });
+
+    }catch(err){
+        next(err)
+    }
+}
