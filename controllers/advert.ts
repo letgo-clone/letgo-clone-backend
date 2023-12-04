@@ -6,43 +6,94 @@ const redis = require('../helpers/redis');
 const Image = require('../helpers/uploadImage');
 
 exports.getActualAdvert = async function (req: Request, res: Response, next: NextFunction) {
-    try {
-        const data = await pool.query(`
-            SELECT 
-                ad.id, 
-                ad.title, 
-                to_char(ad.created_at,'DD Month') as date, 
-                ad.description,
-                ad.images,
-                ad.price,
-                ad.parameters,
-                u.user_type,
-                ads.display_type,
-                ads.display_name,
-                cy.city,
-                ct.county 
-            FROM 
-                adverts ad 
-            LEFT JOIN 
-                users u ON ad.user_id = u.id 
-            LEFT JOIN 
-                advert_status ads ON ads.id = ad.status_id 
-            LEFT JOIN 
-                cities cy ON cy.id = ad.city_id 
-            LEFT JOIN 
-                counties ct ON ct.id = ad.county_id 
-            WHERE 
-                ad.is_deleted = FALSE 
-                    AND 
-                ad.is_verify = TRUE 
-                    AND 
-                u.is_deleted = FALSE 
-                    AND 
-                ads.is_visible = TRUE
-        `);
-        const user = data.rows;
+    const getRedisData = await redis.RedisClient.get('currentUser')
+    const currentUser = JSON.parse(getRedisData);
 
-        return res.status(200).json(user);
+    try {
+        let sqlNonAuthQuery;
+
+        if(currentUser?.user_id){
+
+            sqlNonAuthQuery = `
+                 SELECT 
+                    ad.id, 
+                    ad.title, 
+                    to_char(ad.created_at,'DD Month') as date, 
+                    ad.description,
+                    ad.images,
+                    ad.price,
+                    ad.parameters,
+                    u.user_type,
+                    ads.display_type,
+                    ads.display_name,
+                    cy.city,
+                    ct.county,
+                    CASE
+                        WHEN adf.favorite_id IS NULL THEN false
+                        ELSE true END
+                        AS has_favorite
+                FROM 
+                    adverts ad 
+                LEFT JOIN 
+                    users u ON ad.user_id = u.id 
+                LEFT JOIN 
+                    advert_status ads ON ads.id = ad.status_id 
+                LEFT JOIN 
+                    cities cy ON cy.id = ad.city_id 
+                LEFT JOIN 
+                    counties ct ON ct.id = ad.county_id 
+                LEFT JOIN
+					advert_favorites adf ON adf.advert_id = ad.id
+                WHERE 
+                    ad.is_deleted = FALSE 
+                        AND 
+                    ad.is_verify = TRUE 
+                        AND 
+                    u.is_deleted = FALSE 
+                        AND 
+                    ads.is_visible = TRUE
+            `;
+        }else{
+
+            sqlNonAuthQuery = `
+                SELECT 
+                    ad.id, 
+                    ad.title, 
+                    to_char(ad.created_at,'DD Month') as date, 
+                    ad.description,
+                    ad.images,
+                    ad.price,
+                    ad.parameters,
+                    u.user_type,
+                    ads.display_type,
+                    ads.display_name,
+                    cy.city,
+                    ct.county 
+                FROM 
+                    adverts ad 
+                LEFT JOIN 
+                    users u ON ad.user_id = u.id 
+                LEFT JOIN 
+                    advert_status ads ON ads.id = ad.status_id 
+                LEFT JOIN 
+                    cities cy ON cy.id = ad.city_id 
+                LEFT JOIN 
+                    counties ct ON ct.id = ad.county_id 
+                WHERE 
+                    ad.is_deleted = FALSE 
+                        AND 
+                    ad.is_verify = TRUE 
+                        AND 
+                    u.is_deleted = FALSE 
+                        AND 
+                    ads.is_visible = TRUE
+            `;
+        }
+
+        const data = await pool.query(sqlNonAuthQuery);
+        const result = data.rows;
+
+        return res.status(200).json(result);
 
     } catch(err) {
         next(err); 
