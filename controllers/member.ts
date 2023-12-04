@@ -25,6 +25,7 @@ exports.get_member = async function (req: Request, res: Response, next: NextFunc
 
         const sqlQuery = `
             SELECT 
+                u.id,
                 u.fullname,
                 u.about,
                 u.phone_number,
