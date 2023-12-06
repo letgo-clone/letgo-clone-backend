@@ -376,3 +376,36 @@ exports.getMyFavoriteAdvert = async function (req: Request, res: Response, next:
 
     }
 }
+
+exports.getMyAdvert = async function (req: Request, res: Response, next: NextFunction) {
+    const getRedisData = await redis.RedisClient.get('currentUser')
+    const currentUser = JSON.parse(getRedisData);
+
+    const userId = currentUser?.user_id;
+
+    try {
+        const sqlQuery = `
+            SELECT
+                id,
+                title,
+                images,
+                price,
+                is_visible
+            FROM
+                adverts
+            WHERE
+                user_id = $1
+        `;
+
+        const response = await pool.query(sqlQuery, [userId]);
+
+        const result = response.rows;
+
+        res.status(200).json(result);
+
+    }
+    catch (err){
+
+    }
+
+}
