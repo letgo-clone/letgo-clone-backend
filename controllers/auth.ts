@@ -144,3 +144,17 @@ exports.handleToken = async function (req: Request, res: Response, next: NextFun
         next(err);
     }
 }
+
+exports.handleLogout = async function (req: Request, res: Response, next: NextFunction) {
+    const getRedisData = await redis.RedisClient.get('currentUser');
+
+    try {
+        if(getRedisData) {
+            redis.setValue("currentUser", 1, {});
+            return res.status(200).json({ 'success' : true })
+        }
+        return res.status(200).json({ 'success' : true });
+    }catch(err) {
+        next(err);
+    }
+}
