@@ -212,6 +212,54 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
     }
 }
 
+exports.getMyAdvertDetail = async function (req: Request, res: Response, next: NextFunction) {
+    const getRedisData = await redis.RedisClient.get('currentUser')
+    const currentUser = JSON.parse(getRedisData);
+
+    const userId = currentUser?.user_id;    
+    const advert_id = req.params.advert_id;
+    
+    try {
+        const sqlQuery = `
+            SELECT 
+                ad.id, 
+                ad.title, 
+                ad.description, 
+                ad.images, 
+                ad.price, 
+                ad.parameters, 
+                cy.city, 
+                ct.county 
+            FROM 
+                adverts ad 
+            LEFT JOIN 
+                users u ON ad.user_id = u.id
+            LEFT JOIN 
+                cities cy ON cy.id = ad.city_id 
+            LEFT JOIN 
+                counties ct ON ct.id = ad.county_id 
+            WHERE 
+                (ad.is_deleted = FALSE AND ad.is_visible = TRUE) 
+            AND 
+                u.id = ad.user_id
+            AND 
+                ad.id = $1
+            `;
+
+        const data = await pool.query(sqlQuery, [advert_id]); 
+        const advertDetail = data.rows[0];
+
+        if(advertDetail.length < 1){
+            throw new CustomError(404, "veri bulunamadı"); 
+        }
+
+        return res.status(200).json(advertDetail);
+
+    } catch(err) {
+        next(err); 
+    }
+}
+
 exports.getLocationCity =  async function (req: Request, res: Response, next: NextFunction) {
     try {
         const data = await pool.query(`
