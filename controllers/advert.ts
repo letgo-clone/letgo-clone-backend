@@ -386,15 +386,22 @@ exports.getMyAdvert = async function (req: Request, res: Response, next: NextFun
     try {
         const sqlQuery = `
             SELECT
-                id,
-                title,
-                images,
-                price,
-                is_visible
+                ad.id,
+                ad.title,
+                ad.images,
+                ad.price,
+                ad.is_visible,
+                COUNT(adf.favorite_id) as likes
             FROM
-                adverts
+                adverts ad
+            LEFT JOIN
+                advert_favorites adf
+            ON
+                adf.advert_id = ad.id
             WHERE
-                user_id = $1
+                ad.user_id = $1
+            GROUP BY
+				ad.id
         `;
 
         const response = await pool.query(sqlQuery, [userId]);
