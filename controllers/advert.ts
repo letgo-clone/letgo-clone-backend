@@ -416,3 +416,45 @@ exports.getMyAdvert = async function (req: Request, res: Response, next: NextFun
     }
 
 }
+
+exports.patchSettingAdvert = async function (req: Request, res: Response, next: NextFunction) {
+    const advert_id = req.params.advert_id;
+    const path = req.body.path;
+    const op = req.body.op;
+    const value = req.body.value;
+
+    try {
+        if(path == "has_advert_visible" && op == 'replace') {
+            const visibleQuery = `
+                UPDATE
+                    adverts
+                SET
+                    is_visible = $1
+                WHERE
+                    id = $2
+            `;
+            await pool.query(visibleQuery, [value, advert_id]);
+
+            return res.status(200).json({'success' : true})
+        }
+        else if(path == "has_advert_remove" && op == 'remove'){
+            const visibleQuery = `
+                UPDATE
+                    adverts
+                SET
+                    is_deleted = $1
+                WHERE
+                    id = $2
+            `;
+            await pool.query(visibleQuery, [value, advert_id]);
+
+            return res.status(200).json({'success' : true})
+        }else{
+            throw new CustomError(204);
+        }
+    }
+    catch (err)
+    {
+        next(err)
+    }
+}
