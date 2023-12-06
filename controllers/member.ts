@@ -169,7 +169,7 @@ exports.get_user_info = async function(req:Request, res:Response, next: NextFunc
             AND
                 ad.is_deleted = FALSE 
             AND 
-                ad.is_verify = TRUE
+                ad.is_visible = TRUE
         `;
         const advertResult = await pool.query(advertQuery, [userId]);
         const advertData = advertResult.rows;
