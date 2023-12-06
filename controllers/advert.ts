@@ -47,7 +47,7 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
                 WHERE 
                     ad.is_deleted = FALSE 
                         AND 
-                    ad.is_verify = TRUE 
+                    ad.is_visible = TRUE 
                         AND 
                     u.is_deleted = FALSE 
                         AND 
@@ -82,7 +82,7 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
                 WHERE 
                     ad.is_deleted = FALSE 
                         AND 
-                    ad.is_verify = TRUE 
+                    ad.is_visible = TRUE 
                         AND 
                     u.is_deleted = FALSE 
                         AND 
@@ -132,7 +132,7 @@ exports.getAdvertDetail = async function (req: Request, res: Response, next: Nex
             LEFT JOIN 
                 counties ct ON ct.id = ad.county_id 
             WHERE 
-                (ad.is_deleted = FALSE AND ad.is_verify = TRUE) 
+                (ad.is_deleted = FALSE AND ad.is_visible = TRUE) 
             AND 
                 (u.is_deleted = FALSE AND ads.is_visible = TRUE) AND ad.id = $1`;
 
@@ -354,7 +354,7 @@ exports.getMyFavoriteAdvert = async function (req: Request, res: Response, next:
         WHERE 
             ad.is_deleted = FALSE 
                 AND 
-            ad.is_verify = TRUE 
+            ad.is_visible = TRUE 
                 AND 
             u.is_deleted = FALSE 
                 AND 
