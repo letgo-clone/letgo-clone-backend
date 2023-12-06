@@ -400,6 +400,8 @@ exports.getMyAdvert = async function (req: Request, res: Response, next: NextFun
                 adf.advert_id = ad.id
             WHERE
                 ad.user_id = $1
+            AND
+                is_deleted = FALSE
             GROUP BY
 				ad.id
         `;
