@@ -22,7 +22,7 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
                     ad.description,
                     ad.images,
                     ad.price,
-                    ad.parameters,
+                    ad.how_status,
                     u.user_type,
                     ads.display_type,
                     ads.display_name,
@@ -63,7 +63,7 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
                     ad.description,
                     ad.images,
                     ad.price,
-                    ad.parameters,
+                    ad.how_status,
                     u.user_type,
                     ads.display_type,
                     ads.display_name,
@@ -112,7 +112,7 @@ exports.getAdvertDetail = async function (req: Request, res: Response, next: Nex
                 ad.description, 
                 ad.images, 
                 ad.price, 
-                ad.parameters, 
+                ad.how_status, 
                 u.id as userId, 
                 u.fullname,
                 u.photo,
@@ -158,7 +158,7 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
     const email =  parseUser.username;
     const title = req.body.title;
     const description = req.body.description;
-    const parameters = req.body.parameters;
+    const how_status = req.body.how_status;
     const price = req.body.price;
     const city_id = req.body.city_id;
     const county_id = req.body.county_id;
@@ -181,8 +181,8 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
             throw new CustomError(400, "images alanını belirtmelisiniz.");
         }
 
-        if (!parameters) {
-            throw new CustomError(400, "parameters alanını belirtmelisiniz.");
+        if (!how_status) {
+            throw new CustomError(400, "how_status alanını belirtmelisiniz.");
         }
 
         if (!price || price == '') {
@@ -200,8 +200,8 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
          const advertImagesResponse = await Image.uploadMultipleImages(advertImages, 'members/' + email  + '/adverts/' + title + '/' , title);
 
 
-        const insertQuery = 'INSERT INTO adverts(title, description, user_id, images, parameters, price, city_id, county_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *';
-        const values = [title, description, user_id, JSON.stringify(advertImagesResponse), parameters, price, city_id, county_id];
+        const insertQuery = 'INSERT INTO adverts(title, description, user_id, images, how_status, price, city_id, county_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *';
+        const values = [title, description, user_id, JSON.stringify(advertImagesResponse), how_status, price, city_id, county_id];
 
         const status = await pool.query(insertQuery, values);
         const advert_id = status.rows[0].id;
@@ -227,7 +227,7 @@ exports.getMyAdvertDetail = async function (req: Request, res: Response, next: N
                 ad.description, 
                 ad.images, 
                 ad.price, 
-                ad.parameters, 
+                ad.how_status, 
                 cy.id as city_id, 
                 ct.id as county_id
             FROM 
@@ -264,7 +264,7 @@ exports.putAdvertEdit =  async function (req: Request, res: Response, next: Next
     const advertId = req.params.advert_id;
     const title = req.body.title;
     const description = req.body.description;
-    const status = req.body.status;
+    const how_status = req.body.how_status;
     const price = req.body.price;
     const city_id = req.body.city_id;
     const county_id = req.body.county_id;
@@ -279,9 +279,9 @@ exports.putAdvertEdit =  async function (req: Request, res: Response, next: Next
         if (!description || description == '') {
             throw new CustomError(403, "description alanını belirtmelisiniz.");
         }
-      /*   if (!status || status == '') {
-            throw new CustomError(403, "status alanını belirtmelisiniz.");
-        } */
+        if (!how_status || how_status == '') {
+            throw new CustomError(403, "how_status alanını belirtmelisiniz.");
+        } 
         if (!price || price == '') {
             throw new CustomError(403, "price alanını belirtmelisiniz.");
         }
@@ -317,11 +317,12 @@ exports.putAdvertEdit =  async function (req: Request, res: Response, next: Next
                 description = $2,
                 price = $3,
                 city_id = $4,
-                county_id = $5
+                county_id = $5,
+                how_status = $6
             WHERE
-                id = $6
+                id = $7
         `;
-        const updateValues = [title, description, price, city_id, county_id, advertId]
+        const updateValues = [title, description, price, city_id, county_id, how_status, advertId]
         await pool.query(updateQuerty, updateValues);
 
         return res.status(200).json({'success' : true})
