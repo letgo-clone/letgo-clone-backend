@@ -260,6 +260,77 @@ exports.getMyAdvertDetail = async function (req: Request, res: Response, next: N
     }
 }
 
+exports.putAdvertEdit =  async function (req: Request, res: Response, next: NextFunction) {
+    const advertId = req.params.advert_id;
+    const title = req.body.title;
+    const description = req.body.description;
+    const status = req.body.status;
+    const price = req.body.price;
+    const city_id = req.body.city_id;
+    const county_id = req.body.county_id;
+
+    try {
+        if (!advertId || advertId == '') {
+            throw new CustomError(403, "advertId alanını belirtmelisiniz.");
+        }
+        if (!title || title == '') {
+            throw new CustomError(403, "title alanını belirtmelisiniz.");
+        }
+        if (!description || description == '') {
+            throw new CustomError(403, "description alanını belirtmelisiniz.");
+        }
+      /*   if (!status || status == '') {
+            throw new CustomError(403, "status alanını belirtmelisiniz.");
+        } */
+        if (!price || price == '') {
+            throw new CustomError(403, "price alanını belirtmelisiniz.");
+        }
+        if (!city_id || city_id == '') {
+            throw new CustomError(403, "city_id alanını belirtmelisiniz.");
+        }
+        if (!county_id || county_id == '') {
+            throw new CustomError(403, "county_id alanını belirtmelisiniz.");
+        }
+        
+        const selectQuery = `
+            SELECT 
+                id
+            FROM
+                adverts
+            WHERE
+                id = $1
+            AND
+                is_deleted = FALSE
+        `
+        const selectResponse = await pool.query(selectQuery, [advertId]);
+        const selectResult = selectResponse.rows[0];
+
+        if(!selectResult){
+            throw new CustomError(204, "bulunamadı");
+        }
+
+        const updateQuerty = `
+            UPDATE
+                adverts
+            SET
+                title = $1,
+                description = $2,
+                price = $3,
+                city_id = $4,
+                county_id = $5
+            WHERE
+                id = $6
+        `;
+        const updateValues = [title, description, price, city_id, county_id, advertId]
+        await pool.query(updateQuerty, updateValues);
+
+        return res.status(200).json({'success' : true})
+    }
+    catch (err) {
+        next(err);
+    }
+}
+
 exports.getLocationCity =  async function (req: Request, res: Response, next: NextFunction) {
     try {
         const data = await pool.query(`
