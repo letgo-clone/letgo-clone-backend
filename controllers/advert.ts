@@ -28,6 +28,7 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
                     ads.display_name,
                     cy.city,
                     ct.county,
+                    ai.url as photo,
                     CASE
                         WHEN adf.favorite_id IS NULL THEN false
                         ELSE true END
@@ -44,6 +45,8 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
                     counties ct ON ct.id = ad.county_id 
                 LEFT JOIN
 					advert_favorites adf ON adf.advert_id = ad.id
+                LEFT JOIN
+                    advert_images ai ON ai.advert_id = ad.id
                 WHERE 
                     ad.is_deleted = FALSE 
                         AND 
@@ -52,6 +55,8 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
                     u.is_deleted = FALSE 
                         AND 
                     ads.is_visible = TRUE
+                        AND
+                    ai.is_cover_image = TRUE
             `;
         }else{
 
@@ -61,14 +66,14 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
                     ad.title, 
                     to_char(ad.created_at,'DD Month') as date, 
                     ad.description,
-                    ad.images,
                     ad.price,
                     ad.how_status,
                     u.user_type,
                     ads.display_type,
                     ads.display_name,
                     cy.city,
-                    ct.county 
+                    ct.county,
+                    ai.url as photo
                 FROM 
                     adverts ad 
                 LEFT JOIN 
@@ -79,6 +84,8 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
                     cities cy ON cy.id = ad.city_id 
                 LEFT JOIN 
                     counties ct ON ct.id = ad.county_id 
+                LEFT JOIN
+                    advert_images ai ON ai.advert_id = ad.id
                 WHERE 
                     ad.is_deleted = FALSE 
                         AND 
@@ -87,6 +94,8 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
                     u.is_deleted = FALSE 
                         AND 
                     ads.is_visible = TRUE
+                        AND
+                    ai.is_cover_image = TRUE
             `;
         }
 
@@ -115,7 +124,6 @@ exports.getAdvertDetail = async function (req: Request, res: Response, next: Nex
                 ad.how_status, 
                 u.id as userId, 
                 u.fullname,
-                u.photo,
                 u.user_type, 
                 ads.display_type, 
                 ads.display_name, 
@@ -141,6 +149,25 @@ exports.getAdvertDetail = async function (req: Request, res: Response, next: Nex
 
         if(advertDetail.length < 1){
             throw new CustomError(404, "veri bulunamadı"); 
+        }
+        const imagesQuery = `
+            SELECT
+                images_id,
+                url,
+                path,
+                width,
+                height,
+                is_cover_image
+            FROM
+                advert_images
+            WHERE
+                advert_id = $1
+        `
+        const imagesResponse = await pool.query(imagesQuery, [advert_id]);
+        const imagesResult = imagesResponse.rows;
+
+        if(imagesResult.length > 0){
+            advertDetail['photo'] = imagesResult
         }
 
         return res.status(200).json(advertDetail);
@@ -197,16 +224,38 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
             throw new CustomError(400, "county_id alanını belirtmelisiniz.");
         }
 
-         const advertImagesResponse = await Image.uploadMultipleImages(advertImages, 'members/' + email  + '/adverts/' + title + '/' , title);
+        const advertImagesResponse = await Image.uploadMultipleImages(advertImages, 'members/' + email  + '/adverts/' + title + '/' , title);
 
-
-        const insertQuery = 'INSERT INTO adverts(title, description, user_id, images, how_status, price, city_id, county_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *';
-        const values = [title, description, user_id, JSON.stringify(advertImagesResponse), how_status, price, city_id, county_id];
+        const insertQuery = `
+            INSERT INTO adverts 
+                (title, 
+                description, 
+                user_id, 
+                how_status, 
+                price, 
+                city_id, 
+                county_id) 
+            VALUES
+                ($1, $2, $3, $4, $5, $6, $7) 
+            RETURNING *
+            `;
+        const values = [title, description, user_id, how_status, price, city_id, county_id];
 
         const status = await pool.query(insertQuery, values);
         const advert_id = status.rows[0].id;
+
+        for(const item of advertImagesResponse){
+            const imageInsertQuery = `
+                INSERT INTO advert_images
+                    (url, path, width, height, advert_id) 
+                VALUES
+                    ($1, $2, $3, $4, $5) 
+            `;
+            const values = [item.url, item.path, item.width, item.height, advert_id];
+            await pool.query(imageInsertQuery, values);
+        }
        
-        return res.status(201).json({ 'success': 'true' , 'advert_id' : advert_id})
+        return res.status(201).json({ 'success': 'true' , 'advert_id' : advert_id}) 
     }catch (err){
         next(err)
     }
