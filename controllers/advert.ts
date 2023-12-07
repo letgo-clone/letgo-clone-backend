@@ -228,8 +228,8 @@ exports.getMyAdvertDetail = async function (req: Request, res: Response, next: N
                 ad.images, 
                 ad.price, 
                 ad.parameters, 
-                cy.city, 
-                ct.county 
+                cy.id as city_id, 
+                ct.id as county_id
             FROM 
                 adverts ad 
             LEFT JOIN 
