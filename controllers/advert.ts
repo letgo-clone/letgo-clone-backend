@@ -560,13 +560,18 @@ exports.getMyAdvert = async function (req: Request, res: Response, next: NextFun
                 ad.images,
                 ad.price,
                 ad.is_visible,
-                COUNT(adf.favorite_id) as likes
+                COUNT(adf.favorite_id) as likes,
+                STRING_AGG(CASE WHEN aim.is_cover_image = TRUE THEN aim.url ELSE NULL END, '') AS is_cover_image
             FROM
                 adverts ad
             LEFT JOIN
                 advert_favorites adf
             ON
                 adf.advert_id = ad.id
+            LEFT JOIN
+				advert_images aim
+			ON
+				ad.id = aim.advert_id
             WHERE
                 ad.user_id = $1
             AND
