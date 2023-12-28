@@ -265,20 +265,46 @@ exports.getMyAdvertDetail = async function (req: Request, res: Response, next: N
     const getRedisData = await redis.RedisClient.get('currentUser')
     const currentUser = JSON.parse(getRedisData);
 
-    const userId = currentUser?.user_id;    
-    const advert_id = req.params.advert_id;
+    const userId = currentUser?.user_id;     
+    const advert_id = req.params.advert_id; 
     
     try {
-        const sqlQuery = `
+        const advertHasSqlQuery = `
+            SELECT
+                ad.id,
+                ad.user_id
+            FROM
+                adverts ad
+            WHERE
+                ad.id = $1
+            AND
+                ad.user_id = $2
+        `;
+
+        const advertHasResult = await pool.query(advertHasSqlQuery, [advert_id, userId]); 
+        const advertHasData = advertHasResult.rows
+
+        if(advertHasData.length < 1){
+            throw new CustomError(404, "veri bulunamadı"); 
+        }
+
+        const advertSqlQuery = `
             SELECT 
                 ad.id, 
                 ad.title, 
-                ad.description, 
-                ad.images, 
+                ad.description,
                 ad.price, 
                 ad.how_status, 
                 cy.id as city_id, 
-                ct.id as county_id
+                ct.id as county_id,
+                json_agg (
+                    json_build_object (
+                        'image_id', aim.images_id,
+                        'url', aim.url,
+                        'path', aim.path,
+                        'is_cover_image', aim.is_cover_image
+                    )
+                ) as images
             FROM 
                 adverts ad 
             LEFT JOIN 
@@ -287,20 +313,20 @@ exports.getMyAdvertDetail = async function (req: Request, res: Response, next: N
                 cities cy ON cy.id = ad.city_id 
             LEFT JOIN 
                 counties ct ON ct.id = ad.county_id 
+            LEFT JOIN
+				advert_images aim ON aim.advert_id = ad.id
             WHERE 
                 (ad.is_deleted = FALSE AND ad.is_visible = TRUE) 
             AND 
                 u.id = ad.user_id
             AND 
                 ad.id = $1
-            `;
+            GROUP BY
+				ad.id, cy.id, ct.id
+        `;
 
-        const data = await pool.query(sqlQuery, [advert_id]); 
+        const data = await pool.query(advertSqlQuery, [advert_id]); 
         const advertDetail = data.rows[0];
-
-        if(advertDetail.length < 1){
-            throw new CustomError(404, "veri bulunamadı"); 
-        }
 
         return res.status(200).json(advertDetail);
 
