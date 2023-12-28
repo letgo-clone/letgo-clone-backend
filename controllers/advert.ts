@@ -340,6 +340,12 @@ exports.getMyAdvertDetail = async function (req: Request, res: Response, next: N
 }
 
 exports.putAdvertEdit =  async function (req: Request, res: Response, next: NextFunction) {
+    const getRedisData = await redis.RedisClient.get('currentUser');
+    const parseUser = JSON.parse(getRedisData);
+
+    const user_id = parseUser.user_id;
+    const email =  parseUser.username;
+
     const advertId = req.params.advert_id;
     const title = req.body.title;
     const description = req.body.description;
@@ -347,6 +353,9 @@ exports.putAdvertEdit =  async function (req: Request, res: Response, next: Next
     const price = req.body.price;
     const city_id = req.body.city_id;
     const county_id = req.body.county_id;
+    const advertImages = req.files;
+    const deletedImages = JSON.parse(req.body.old_images);
+    const coverImageId = req.body.cover_image_id;
 
     try {
         if (!advertId || advertId == '') {
@@ -387,8 +396,53 @@ exports.putAdvertEdit =  async function (req: Request, res: Response, next: Next
         if(!selectResult){
             throw new CustomError(204, "bulunamadı");
         }
+        
+        const advertImagesResponse = await Image.uploadMultipleImages(advertImages, 'members/' + email  + '/adverts/' + advertId + '/' , title);
 
-        const updateQuerty = `
+        for(const item of advertImagesResponse){
+            const imageInsertQuery = `
+                INSERT INTO advert_images
+                    (url, path, width, height, advert_id, is_cover_image) 
+                VALUES
+                    ($1, $2, $3, $4, $5, $6) 
+            `;
+            const values = [
+                item.url, 
+                item.path, 
+                item.width, 
+                item.height, 
+                advertId, 
+                coverImageId == 'undefined' && advertImagesResponse[0].path == item.path ? true : false 
+            ];
+            await pool.query(imageInsertQuery, values);
+           
+        }
+
+        const deletedOldImage = async(imageId: number ,path: string) => {
+            await Image.removeOldImage(path);
+
+            // image delete from database
+            const imageDeleteQuery = `
+                DELETE FROM
+                    advert_images
+                WHERE
+                    images_id = $1
+            `
+            await pool.query(imageDeleteQuery, [imageId])
+        }
+
+        if(deletedImages.length !== 0){
+            type coinsCardType = {
+                path?: string,
+                image_id?: number
+            }
+
+            deletedImages.map((item : coinsCardType)  => {
+                deletedOldImage(item.image_id!, item.path!)
+            }); 
+        }
+  
+        const updateQuery = `
             UPDATE
                 adverts
             SET
@@ -402,7 +456,21 @@ exports.putAdvertEdit =  async function (req: Request, res: Response, next: Next
                 id = $7
         `;
         const updateValues = [title, description, price, city_id, county_id, how_status, advertId]
-        await pool.query(updateQuerty, updateValues);
+        await pool.query(updateQuery, updateValues);
+
+        const coverImageQuery = `
+            UPDATE
+                advert_images
+            SET
+                is_cover_image = $1
+            WHERE
+                images_id = $2
+        `;
+
+        if(coverImageId !== 'undefined'){
+            const updateValues = [true, coverImageId ]
+            await pool.query(coverImageQuery, updateValues);
+        }
 
         return res.status(200).json({'success' : true})
     }
