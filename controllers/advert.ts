@@ -224,8 +224,6 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
             throw new CustomError(400, "county_id alanını belirtmelisiniz.");
         }
 
-        const advertImagesResponse = await Image.uploadMultipleImages(advertImages, 'members/' + email  + '/adverts/' + title + '/' , title);
-
         const insertQuery = `
             INSERT INTO adverts 
                 (title, 
@@ -243,6 +241,8 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
 
         const status = await pool.query(insertQuery, values);
         const advert_id = status.rows[0].id;
+
+        const advertImagesResponse = await Image.uploadMultipleImages(advertImages, 'members/' + email  + '/adverts/' + advert_id + '/' , title);
 
         for(const item of advertImagesResponse){
             const imageInsertQuery = `
