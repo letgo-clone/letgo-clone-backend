@@ -247,11 +247,19 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
         for(const item of advertImagesResponse){
             const imageInsertQuery = `
                 INSERT INTO advert_images
-                    (url, path, width, height, advert_id) 
+                    (url, path, width, height, advert_id, is_cover_image) 
                 VALUES
-                    ($1, $2, $3, $4, $5) 
+                    ($1, $2, $3, $4, $5, $6) 
             `;
-            const values = [item.url, item.path, item.width, item.height, advert_id];
+            const values = [
+                item.url, 
+                item.path, 
+                item.width, 
+                item.height, 
+                advert_id, 
+                advertImagesResponse[0].path == item.path ? true : false 
+            ];
+        
             await pool.query(imageInsertQuery, values);
         }
        
