@@ -297,14 +297,18 @@ exports.getMyAdvertDetail = async function (req: Request, res: Response, next: N
                 ad.how_status, 
                 cy.id as city_id, 
                 ct.id as county_id,
-                json_agg (
-                    json_build_object (
-                        'image_id', aim.images_id,
-                        'url', aim.url,
-                        'path', aim.path,
-                        'is_cover_image', aim.is_cover_image
+                CASE WHEN COUNT(aim.images_id) > 0 THEN
+                    jsonb_agg (
+                        jsonb_build_object (
+                            'image_id', aim.images_id,
+                            'url', aim.url,
+                            'path', aim.path,
+                            'is_cover_image', aim.is_cover_image
+                        )
                     )
-                ) as images
+                ELSE
+                    jsonb_build_array()
+                END as images
             FROM 
                 adverts ad 
             LEFT JOIN 
