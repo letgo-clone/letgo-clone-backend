@@ -344,6 +344,8 @@ exports.getMyAdvertDetail = async function (req: Request, res: Response, next: N
                 ad.how_status, 
                 cy.id as city_id, 
                 ct.id as county_id,
+                sc.sub_category_name,
+                mc.category_name,
                 CASE WHEN COUNT(aim.images_id) > 0 THEN
                     jsonb_agg (
                         jsonb_build_object (
@@ -365,7 +367,11 @@ exports.getMyAdvertDetail = async function (req: Request, res: Response, next: N
             LEFT JOIN 
                 counties ct ON ct.id = ad.county_id 
             LEFT JOIN
-				advert_images aim ON aim.advert_id = ad.id
+                advert_images aim ON aim.advert_id = ad.id
+            LEFT JOIN
+                sub_categories sc ON sc.sub_category_id = ad.category_id
+            LEFT JOIN
+                main_categories mc ON mc.category_id = sc.main_category_id
             WHERE 
                 (ad.is_deleted = FALSE AND ad.is_visible = TRUE) 
             AND 
@@ -373,8 +379,8 @@ exports.getMyAdvertDetail = async function (req: Request, res: Response, next: N
             AND 
                 ad.id = $1
             GROUP BY
-				ad.id, cy.id, ct.id
-        `;
+                ad.id, cy.id, ct.id, mc.category_name, sc.sub_category_id
+        `; 
 
         const data = await pool.query(advertSqlQuery, [advert_id]); 
         const advertDetail = data.rows[0];
