@@ -158,7 +158,6 @@ exports.get_user_info = async function(req:Request, res:Response, next: NextFunc
                 ad.title, 
                 to_char(ad.created_at,'DD Month') as date, 
                 ad.description,
-                ad.images,
                 ad.price
             FROM
                 adverts ad
