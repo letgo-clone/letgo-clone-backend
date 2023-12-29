@@ -16,7 +16,8 @@ exports.getCategories = async function (req: Request, res: Response, next: NextF
                     jsonb_agg (
                         jsonb_build_object (
                             'sub_category_id', sc.sub_category_id,
-                            'sub_category_name', sc.sub_category_name
+                            'sub_category_name', sc.sub_category_name,
+                            'main_category_id', mc.category_id
                         )
                     )
                 ELSE
