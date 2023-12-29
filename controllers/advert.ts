@@ -226,7 +226,8 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
     const price = req.body.price;
     const city_id = req.body.city_id;
     const county_id = req.body.county_id;
-    const categoryId = req.body.category_id; 
+    const mainCategoryId = req.body.main_category_id; 
+    const subCategoryId = req.body.sub_category_id; 
     const advertImages = req.files; 
 
     try {
@@ -271,12 +272,14 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
                 price, 
                 city_id, 
                 county_id,
-                category_id) 
+                main_category_id,
+                sub_category_id
+                ) 
             VALUES
-                ($1, $2, $3, $4, $5, $6, $7, $8) 
+                ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
             RETURNING *
             `;
-        const values = [title, description, user_id, how_status, price, city_id, county_id, categoryId];
+        const values = [title, description, user_id, how_status, price, city_id, county_id, mainCategoryId, subCategoryId];
 
         const status = await pool.query(insertQuery, values);
         const advert_id = status.rows[0].id;
@@ -369,9 +372,9 @@ exports.getMyAdvertDetail = async function (req: Request, res: Response, next: N
             LEFT JOIN
                 advert_images aim ON aim.advert_id = ad.id
             LEFT JOIN
-                sub_categories sc ON sc.sub_category_id = ad.category_id
+                sub_categories sc ON sc.sub_category_id = ad.sub_category_id
             LEFT JOIN
-                main_categories mc ON mc.category_id = sc.main_category_id
+                main_categories mc ON mc.category_id = ad.main_category_id
             WHERE 
                 (ad.is_deleted = FALSE AND ad.is_visible = TRUE) 
             AND 
