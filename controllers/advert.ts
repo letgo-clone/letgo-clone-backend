@@ -226,7 +226,8 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
     const price = req.body.price;
     const city_id = req.body.city_id;
     const county_id = req.body.county_id;
-    const advertImages = req.files;
+    const categoryId = req.body.category_id; 
+    const advertImages = req.files; 
 
     try {
         if (!user_id || user_id == '') {
@@ -269,12 +270,13 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
                 how_status, 
                 price, 
                 city_id, 
-                county_id) 
+                county_id,
+                category_id) 
             VALUES
-                ($1, $2, $3, $4, $5, $6, $7) 
+                ($1, $2, $3, $4, $5, $6, $7, $8) 
             RETURNING *
             `;
-        const values = [title, description, user_id, how_status, price, city_id, county_id];
+        const values = [title, description, user_id, how_status, price, city_id, county_id, categoryId];
 
         const status = await pool.query(insertQuery, values);
         const advert_id = status.rows[0].id;
