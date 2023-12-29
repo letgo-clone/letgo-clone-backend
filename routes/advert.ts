@@ -6,6 +6,8 @@ const multer = require('../helpers/multer');
 
 const verifyJWT = require('../middleware/verifyJWT');
 
+router.get('/categories', advertController.getCategories);
+
 router.get("/actual", advertController.getActualAdvert);
 router.get("/actual/:detail", advertController.getAdvertDetail);
 

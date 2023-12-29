@@ -5,6 +5,44 @@ const pool = require('../helpers/postgre');
 const redis = require('../helpers/redis');
 const Image = require('../helpers/uploadImage');
 
+exports.getCategories = async function (req: Request, res: Response, next: NextFunction) {
+    try {
+        const categorySqlQuery = `
+            SELECT
+                mc.category_id,
+                mc.category_name,
+                mc.icon,
+                CASE WHEN COUNT(sc.sub_category_id) > 0 THEN
+                    jsonb_agg (
+                        jsonb_build_object (
+                            'sub_category_id', sc.sub_category_id,
+                            'sub_category_name', sc.sub_category_name
+                        )
+                    )
+                ELSE
+                    jsonb_build_array()
+                END as sub_category
+            FROM
+                main_categories mc
+            LEFT JOIN
+                sub_categories sc ON sc.main_category_id = mc.category_id
+            WHERE
+                sc.is_visible = TRUE
+            GROUP BY
+                mc.category_id
+            ORDER BY
+                mc.category_id ASC
+        `;
+        
+        const categoryResults = await pool.query(categorySqlQuery);
+        const categoryData = categoryResults.rows;
+
+        return res.status(200).json(categoryData);
+    }catch (err){
+        next(err)
+    }
+}
+
 exports.getActualAdvert = async function (req: Request, res: Response, next: NextFunction) {
     const getRedisData = await redis.RedisClient.get('currentUser')
     const currentUser = JSON.parse(getRedisData);
