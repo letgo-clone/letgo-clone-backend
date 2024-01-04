@@ -648,42 +648,48 @@ exports.getMyFavoriteAdvert = async function (req: Request, res: Response, next:
     try {
         const sqlQuery = `
             SELECT 
-            ad.id, 
-            ad.title, 
-            to_char(ad.created_at,'DD Month') as date, 
-            ad.description,
-            ad.price,
-            u.user_type,
-            ads.display_type,
-            ads.display_name,
-            cy.city,
-            ct.county,
+                ad.id, 
+                ad.title, 
+                to_char(ad.created_at,'DD Month') as date, 
+                ad.description,
+                ad.price,
+                ad.how_status,
+                u.user_type,
+                ads.display_type,
+                ads.display_name,
+                cy.city,
+                ct.county,
+                ai.url as photo,
             CASE
                 WHEN adf.favorite_id IS NULL THEN false
                 ELSE true END
                 AS has_favorite
-        FROM 
-            adverts ad 
-        LEFT JOIN 
-            users u ON ad.user_id = u.id 
-        LEFT JOIN 
-            advert_status ads ON ads.id = ad.status_id 
-        LEFT JOIN 
-            cities cy ON cy.id = ad.city_id 
-        LEFT JOIN 
-            counties ct ON ct.id = ad.county_id 
-        LEFT JOIN
-            advert_favorites adf ON adf.advert_id = ad.id
-        WHERE 
-            ad.is_deleted = FALSE 
-                AND 
-            ad.is_visible = TRUE 
-                AND 
-            u.is_deleted = FALSE 
-                AND 
-            ads.is_visible = TRUE
-                AND
-            adf.user_id = $1
+            FROM 
+                adverts ad 
+            LEFT JOIN 
+                users u ON ad.user_id = u.id 
+            LEFT JOIN 
+                advert_status ads ON ads.id = ad.status_id 
+            LEFT JOIN 
+                cities cy ON cy.id = ad.city_id 
+            LEFT JOIN 
+                counties ct ON ct.id = ad.county_id 
+            LEFT JOIN
+                advert_favorites adf ON adf.advert_id = ad.id
+            LEFT JOIN
+                advert_images ai ON ai.advert_id = ad.id
+            WHERE 
+                ad.is_deleted = FALSE 
+                    AND 
+                ad.is_visible = TRUE 
+                    AND 
+                u.is_deleted = FALSE 
+                    AND 
+                ads.is_visible = TRUE
+                    AND
+                ai.is_cover_image = TRUE
+                    AND
+                adf.user_id = $1
         `;
 
         const responseData = await pool.query(sqlQuery, [userId]);
