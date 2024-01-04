@@ -699,7 +699,7 @@ exports.getMyFavoriteAdvert = async function (req: Request, res: Response, next:
             throw new CustomError(404); 
         }
 
-        return res.status(200).json({getData});
+        return res.status(200).json(getData);
     }
     catch(err){
 
