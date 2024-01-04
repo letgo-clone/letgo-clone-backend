@@ -158,22 +158,49 @@ exports.get_user_info = async function(req:Request, res:Response, next: NextFunc
                 ad.title, 
                 to_char(ad.created_at,'DD Month') as date, 
                 ad.description,
-                ad.price
+                ad.price,
+                ad.how_status,
+                u.user_type,
+                ads.display_type,
+                ads.display_name,
+                cy.city,
+                ct.county,
+                ai.url as photo,
+            CASE
+                WHEN adf.favorite_id IS NULL THEN false
+                ELSE true END
+                AS has_favorite
             FROM
                 adverts ad
             LEFT JOIN
                 users u ON u.id = ad.user_id
+                LEFT JOIN 
+                advert_status ads ON ads.id = ad.status_id 
+            LEFT JOIN 
+                cities cy ON cy.id = ad.city_id 
+            LEFT JOIN 
+                counties ct ON ct.id = ad.county_id 
+            LEFT JOIN
+                advert_favorites adf ON adf.advert_id = ad.id
+            LEFT JOIN
+                advert_images ai ON ai.advert_id = ad.id
             WHERE
                 ad.user_id = $1
             AND
                 ad.is_deleted = FALSE 
             AND 
                 ad.is_visible = TRUE
+            AND
+                u.is_deleted = FALSE
+            AND
+                ads.is_visible = TRUE
+            AND
+                ai.is_cover_image = TRUE
         `;
         const advertResult = await pool.query(advertQuery, [userId]);
         const advertData = advertResult.rows;
 
-        return res.status(200).json({ userData, advertData });
+        return res.status(200).json({user: userData, adverts: advertData});
 
     }catch(err){
         next(err)
