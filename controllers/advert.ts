@@ -162,6 +162,7 @@ exports.getAdvertDetail = async function (req: Request, res: Response, next: Nex
                 u.id as userId, 
                 u.fullname,
                 u.user_type, 
+                u.photo as user_image,
                 ads.display_type, 
                 ads.display_name, 
                 cy.city, 
