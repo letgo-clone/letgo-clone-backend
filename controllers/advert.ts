@@ -48,6 +48,14 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
     const getRedisData = await redis.RedisClient.get('currentUser')
     const currentUser = JSON.parse(getRedisData);
 
+    const search_query = req.query.search as string;
+    const selected_city = req.query.selected_city;
+    const selected_county = req.query.selected_county;
+    const min_price = req.query.min_price;
+    const max_price = req.query.max_price;
+    const main_category = req.query.main_category;
+    const sub_category = req.query.sub_category;
+
     try {
         let sqlNonAuthQuery;
 
@@ -137,7 +145,38 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
             `;
         }
 
-        const data = await pool.query(sqlNonAuthQuery);
+        let filters = [];
+        let values = [];
+
+        if(selected_city){
+           filters.push(`ad.city_id = $${filters.length + 1}`);
+           values.push(selected_city);
+        }
+        if(selected_county){
+           filters.push(`ad.county_id = $${filters.length + 1}`);
+           values.push(selected_county);
+        }
+        if(min_price){
+            filters.push(`ad.price >= $${filters.length + 1}`);
+            values.push(min_price);
+        }
+        if(max_price){
+            filters.push(`ad.price <= $${filters.length + 1}`);
+            values.push(max_price);
+        }
+        if(search_query){
+            const search:string = search_query.replace(/%/g, ' ');
+            console.log(search)
+            filters.push(`(ad.title ILIKE $${filters.length + 1} OR ad.description ILIKE $${filters.length + 2})`);
+            values.push(`%${search}%`);
+            values.push(`%${search}%`);
+        }
+        
+        if(filters.length > 0){
+            sqlNonAuthQuery += ' AND ' + filters.join(' AND ')
+        }
+       
+        const data = await pool.query(sqlNonAuthQuery,values);
         const result = data.rows;
 
         return res.status(200).json(result);
