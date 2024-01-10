@@ -11,17 +11,18 @@ router.get('/categories', advertController.getCategories);
 router.get("/actual", advertController.getActualAdvert);
 router.get("/actual/:detail", advertController.getAdvertDetail);
 
+// Users advert api's
 router.get('/list', verifyJWT, advertController.getMyAdvert);
 router.patch('/list/:advert_id', verifyJWT, multer.body_parse.any(), advertController.patchSettingAdvert)
 
-router.post('/actual', verifyJWT, multer.image_upload.array('photo'), advertController.postAdvert, multer.body_parse.any());
-router.get('/detail/:advert_id', verifyJWT, advertController.getMyAdvertDetail);
-router.put('/actual/:advert_id', verifyJWT, multer.image_upload.array('photo'), advertController.putAdvertEdit, multer.body_parse.any());
+router.post('/list', verifyJWT, multer.image_upload.array('photo'), advertController.postAdvert, multer.body_parse.any());
+router.get('/list/:advert_id', verifyJWT, advertController.getMyAdvertDetail);
+router.put('/list/:advert_id', verifyJWT, multer.image_upload.array('photo'), advertController.putAdvertEdit, multer.body_parse.any());
 
 router.get('/location', advertController.getLocationCity);
 router.get('/location/:city_id', advertController.getCountyForCity);
 
-router.patch('/favorite/:advert_id', verifyJWT, multer.body_parse.any(), advertController.patchFavoriteAdvert);
+router.patch('/favorite/:advert_id', verifyJWT, multer.body_parse.array(), advertController.patchFavoriteAdvert);
 router.get('/favorite/list', verifyJWT, advertController.getMyFavoriteAdvert);
 
 module.exports = router;
