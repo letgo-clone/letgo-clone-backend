@@ -156,6 +156,14 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
            filters.push(`ad.county_id = $${filters.length + 1}`);
            values.push(selected_county);
         }
+        if(main_category){
+            filters.push(`ad.main_category_id = $${filters.length + 1}`);
+            values.push(main_category);
+        }
+        if(sub_category){
+            filters.push(`ad.sub_category_id = $${filters.length + 1}`);
+            values.push(sub_category);
+        }
         if(min_price){
             filters.push(`ad.price >= $${filters.length + 1}`);
             values.push(min_price);
