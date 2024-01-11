@@ -101,6 +101,8 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
                         AND 
                     ad.is_visible = TRUE 
                         AND 
+                    ad.is_sell = FALSE
+                        AND
                     u.is_deleted = FALSE 
                         AND 
                     ads.is_visible = TRUE
@@ -141,6 +143,8 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
                     ad.is_deleted = FALSE 
                         AND 
                     ad.is_visible = TRUE 
+                        AND
+                    ad.is_sell = FALSE
                         AND 
                     u.is_deleted = FALSE 
                         AND 
