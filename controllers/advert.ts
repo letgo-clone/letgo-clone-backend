@@ -55,7 +55,8 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
     const max_price = req.query.max_price;
     const main_category = req.query.main_category;
     const sub_category = req.query.sub_category;
-
+    const sorting = req.query.sorting as string
+   
     try {
         let sqlNonAuthQuery;
 
@@ -178,7 +179,7 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
         }
         if(search_query){
             const search:string = search_query.replace(/%/g, ' ');
-            console.log(search)
+           
             filters.push(`(ad.title ILIKE $${filters.length + 1} OR ad.description ILIKE $${filters.length + 2})`);
             values.push(`%${search}%`);
             values.push(`%${search}%`);
@@ -186,6 +187,17 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
         
         if(filters.length > 0){
             sqlNonAuthQuery += ' AND ' + filters.join(' AND ')
+        }
+
+        if(sorting){
+            const orderType = sorting.split('-');
+
+            if(orderType[1] == 'price'){
+                sqlNonAuthQuery += ` ORDER BY ad.${orderType[1]} ${orderType[0].toLocaleUpperCase()} `
+            }
+            else{
+                sqlNonAuthQuery += ` ORDER BY ad.created_at ${orderType[0].toLocaleUpperCase()}`
+            }
         }
        
         const data = await pool.query(sqlNonAuthQuery,values);
