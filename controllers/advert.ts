@@ -229,7 +229,11 @@ exports.getAdvertDetail = async function (req: Request, res: Response, next: Nex
                 ads.display_type, 
                 ads.display_name, 
                 cy.city, 
-                ct.county 
+                ct.county,
+                CASE
+                    WHEN adf.favorite_id IS NULL THEN false
+                    ELSE true END
+                    AS has_favorite
             FROM 
                 adverts ad 
             LEFT JOIN 
@@ -240,6 +244,8 @@ exports.getAdvertDetail = async function (req: Request, res: Response, next: Nex
                 cities cy ON cy.id = ad.city_id 
             LEFT JOIN 
                 counties ct ON ct.id = ad.county_id 
+            LEFT JOIN
+                advert_favorites adf ON adf.advert_id = ad.id
             WHERE 
                 (ad.is_deleted = FALSE AND ad.is_visible = TRUE) 
             AND 
