@@ -788,6 +788,7 @@ exports.getMyAdvert = async function (req: Request, res: Response, next: NextFun
                 ad.title,
                 ad.price,
                 ad.is_visible,
+                ad.is_sell,
                 COUNT(adf.favorite_id) as likes,
                 STRING_AGG(CASE WHEN aim.is_cover_image = TRUE THEN aim.url ELSE NULL END, '') AS is_cover_image
             FROM
