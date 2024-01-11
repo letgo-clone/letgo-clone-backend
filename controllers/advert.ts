@@ -853,7 +853,21 @@ exports.patchSettingAdvert = async function (req: Request, res: Response, next: 
             await pool.query(visibleQuery, [value, advert_id]);
 
             return res.status(200).json({'success' : true})
-        }else{
+        }
+        else if(path == "has_advert_sell" && op == 'replace') {
+            const visibleQuery = `
+                UPDATE
+                    adverts
+                SET
+                    is_sell = $1
+                WHERE
+                    id = $2
+            `;
+            await pool.query(visibleQuery, [value, advert_id]);
+
+            return res.status(200).json({'success' : true})
+        }
+        else{
             throw new CustomError(204);
         }
     }
