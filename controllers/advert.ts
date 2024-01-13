@@ -466,9 +466,9 @@ exports.getMyAdvertDetail = async function (req: Request, res: Response, next: N
         const advertHasResult = await pool.query(advertHasSqlQuery, [advert_id, userId]); 
         const advertHasData = advertHasResult.rows
 
-        if(advertHasData.length < 1){
+        if(advertHasData.length == 0){
             throw new CustomError(404, "veri bulunamadı"); 
-        }
+        } 
 
         const advertSqlQuery = `
             SELECT 
