@@ -232,8 +232,12 @@ exports.getAdvertDetail = async function (req: Request, res: Response, next: Nex
                 u.photo as user_image,
                 ads.display_type, 
                 ads.display_name, 
+                ad.city_id,
+                ad.county_id,
                 cy.city, 
                 ct.county,
+                ad.main_category_id,
+                ad.sub_category_id,
                 mc.category_name as main_category,
 				sc.sub_category_name as sub_category,
                 CASE
