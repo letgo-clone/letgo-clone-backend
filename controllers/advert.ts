@@ -298,6 +298,54 @@ exports.getAdvertDetail = async function (req: Request, res: Response, next: Nex
     }
 }
 
+exports.getMyAdvert = async function (req: Request, res: Response, next: NextFunction) {
+    const getRedisData = await redis.RedisClient.get('currentUser')
+    const currentUser = JSON.parse(getRedisData);
+
+    const userId = currentUser?.user_id;
+
+    try {
+        const sqlQuery = `
+            SELECT
+                ad.id,
+                ad.title,
+                ad.price,
+                ad.is_visible,
+                ad.is_sell,
+                ad.status_id,
+                COUNT(adf.favorite_id) as likes,
+                STRING_AGG(CASE WHEN aim.is_cover_image = TRUE THEN aim.url ELSE NULL END, '') AS is_cover_image
+            FROM
+                adverts ad
+            LEFT JOIN
+                advert_favorites adf
+            ON
+                adf.advert_id = ad.id
+            LEFT JOIN
+				advert_images aim
+			ON
+				ad.id = aim.advert_id
+            WHERE
+                ad.user_id = $1
+            AND
+                is_deleted = FALSE
+            GROUP BY
+				ad.id
+        `;
+
+        const response = await pool.query(sqlQuery, [userId]);
+
+        const result = response.rows;
+
+        res.status(200).json(result);
+
+    }
+    catch (err){
+
+    }
+
+}
+
 exports.postAdvert = async function (req: Request, res: Response, next: NextFunction) {
     const getRedisData = await redis.RedisClient.get('currentUser');
     const parseUser = JSON.parse(getRedisData);
@@ -619,6 +667,75 @@ exports.putAdvertEdit =  async function (req: Request, res: Response, next: Next
     }
 }
 
+exports.patchSettingAdvert = async function (req: Request, res: Response, next: NextFunction) {
+    const advert_id = req.params.advert_id;
+    const path = req.body.path;
+    const op = req.body.op;
+    const value = req.body.value;
+
+    try {
+        if(path == "has_advert_visible" && op == 'replace') {
+            const visibleQuery = `
+                UPDATE
+                    adverts
+                SET
+                    is_visible = $1
+                WHERE
+                    id = $2
+            `;
+            await pool.query(visibleQuery, [value, advert_id]);
+
+            return res.status(200).json({'success' : true})
+        }
+        else if(path == "has_advert_remove" && op == 'remove'){
+            const visibleQuery = `
+                UPDATE
+                    adverts
+                SET
+                    is_deleted = $1
+                WHERE
+                    id = $2
+            `;
+            await pool.query(visibleQuery, [value, advert_id]);
+
+            return res.status(200).json({'success' : true})
+        }
+        else if(path == "has_advert_sell" && op == 'replace') {
+            const visibleQuery = `
+                UPDATE
+                    adverts
+                SET
+                    is_sell = $1
+                WHERE
+                    id = $2
+            `;
+            await pool.query(visibleQuery, [value, advert_id]);
+
+            return res.status(200).json({'success' : true})
+        }
+        else if(path == "has_advert_status" && op == 'replace') {
+            const visibleQuery = `
+                UPDATE
+                    adverts
+                SET
+                    status_id = $1
+                WHERE
+                    id = $2
+            `;
+            await pool.query(visibleQuery, [value, advert_id]);
+
+            return res.status(200).json({'success' : true})
+        }
+        else{
+            throw new CustomError(204);
+        }
+    }
+    catch (err)
+    {
+        next(err)
+    }
+}
+
 exports.getLocationCity =  async function (req: Request, res: Response, next: NextFunction) {
     try {
         const data = await pool.query(`
@@ -786,122 +903,5 @@ exports.getMyFavoriteAdvert = async function (req: Request, res: Response, next:
     }
     catch(err){
 
-    }
-}
-
-exports.getMyAdvert = async function (req: Request, res: Response, next: NextFunction) {
-    const getRedisData = await redis.RedisClient.get('currentUser')
-    const currentUser = JSON.parse(getRedisData);
-
-    const userId = currentUser?.user_id;
-
-    try {
-        const sqlQuery = `
-            SELECT
-                ad.id,
-                ad.title,
-                ad.price,
-                ad.is_visible,
-                ad.is_sell,
-                ad.status_id,
-                COUNT(adf.favorite_id) as likes,
-                STRING_AGG(CASE WHEN aim.is_cover_image = TRUE THEN aim.url ELSE NULL END, '') AS is_cover_image
-            FROM
-                adverts ad
-            LEFT JOIN
-                advert_favorites adf
-            ON
-                adf.advert_id = ad.id
-            LEFT JOIN
-				advert_images aim
-			ON
-				ad.id = aim.advert_id
-            WHERE
-                ad.user_id = $1
-            AND
-                is_deleted = FALSE
-            GROUP BY
-				ad.id
-        `;
-
-        const response = await pool.query(sqlQuery, [userId]);
-
-        const result = response.rows;
-
-        res.status(200).json(result);
-
-    }
-    catch (err){
-
-    }
-
-}
-
-exports.patchSettingAdvert = async function (req: Request, res: Response, next: NextFunction) {
-    const advert_id = req.params.advert_id;
-    const path = req.body.path;
-    const op = req.body.op;
-    const value = req.body.value;
-
-    try {
-        if(path == "has_advert_visible" && op == 'replace') {
-            const visibleQuery = `
-                UPDATE
-                    adverts
-                SET
-                    is_visible = $1
-                WHERE
-                    id = $2
-            `;
-            await pool.query(visibleQuery, [value, advert_id]);
-
-            return res.status(200).json({'success' : true})
-        }
-        else if(path == "has_advert_remove" && op == 'remove'){
-            const visibleQuery = `
-                UPDATE
-                    adverts
-                SET
-                    is_deleted = $1
-                WHERE
-                    id = $2
-            `;
-            await pool.query(visibleQuery, [value, advert_id]);
-
-            return res.status(200).json({'success' : true})
-        }
-        else if(path == "has_advert_sell" && op == 'replace') {
-            const visibleQuery = `
-                UPDATE
-                    adverts
-                SET
-                    is_sell = $1
-                WHERE
-                    id = $2
-            `;
-            await pool.query(visibleQuery, [value, advert_id]);
-
-            return res.status(200).json({'success' : true})
-        }
-        else if(path == "has_advert_status" && op == 'replace') {
-            const visibleQuery = `
-                UPDATE
-                    adverts
-                SET
-                    status_id = $1
-                WHERE
-                    id = $2
-            `;
-            await pool.query(visibleQuery, [value, advert_id]);
-
-            return res.status(200).json({'success' : true})
-        }
-        else{
-            throw new CustomError(204);
-        }
-    }
-    catch (err)
-    {
-        next(err)
     }
 }
