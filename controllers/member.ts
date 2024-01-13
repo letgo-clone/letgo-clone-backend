@@ -128,6 +128,52 @@ exports.put_member = async function(req: Request, res: Response, next: NextFunct
     }
 }
 
+exports.post_member =  async function(req: Request, res: Response, next: NextFunction) {
+    const fullname = "letgo kullanıcısı";
+    const {email, password} = req.body;
+
+    try {
+        if (!email || email == '') {
+            throw new CustomError(400, "Email alanını belirtmelisiniz", "value_error");
+        }
+        const oldDataQuery = `
+            SELECT 
+                email
+            FROM
+                users
+            WHERE
+                email = $1
+        `;
+
+        const statusOldData = await pool.query(oldDataQuery, [email]);
+        const responseOldData = statusOldData.rows[0];
+        
+        if(responseOldData?.email){
+            throw new CustomError(409, "Email adresi kullanılmakta", 'duplicate_email');
+        }
+
+        if (!password || password == '') {
+            throw new CustomError(400, "password alanını belirtmelisiniz", "value_error");
+        }
+
+        const passwordHash = await bcrypt.hashSync(password, 10);
+
+        const insertUserQuery = `
+            INSERT INTO
+                users
+            (fullname, email, password)
+                VALUES
+            ($1, $2, $3)
+        `;
+       
+        await pool.query(insertUserQuery, [fullname, email, passwordHash])
+
+        return res.status(200).json({'success': 'true'});
+    }catch (err){
+        next(err);
+    }
+}
+
 exports.get_user_info = async function(req:Request, res:Response, next: NextFunction) {
     const userId = req.params.user_id;
 
