@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx nodemon index.ts"
+    "dev": "npx nodemon index.ts",
+    "debug": "nodemon --exec \"node --inspect-brk=0.0.0.0:9229 --require ts-node/register index.ts\""
   },
   "keywords": [],
   "author": "",
