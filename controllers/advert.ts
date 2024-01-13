@@ -757,6 +757,11 @@ exports.getCountyForCity =  async function (req: Request, res: Response, next: N
     const city_id = req.params.city_id;
 
     try {
+
+        if(city_id == '' || city_id == 'undefined'){
+            throw new CustomError(404, "city_id alanını belirtmelisiniz"); 
+        }
+
         const sqlQuery = `
             SELECT 
                 id,
