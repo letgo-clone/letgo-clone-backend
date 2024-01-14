@@ -77,11 +77,7 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
                     ads.display_name,
                     cy.city,
                     ct.county,
-                    ai.url as photo,
-                    CASE
-                        WHEN adf.favorite_id IS NULL THEN false
-                        ELSE true END
-                        AS has_favorite
+                    ai.url as photo
                 FROM 
                     adverts ad 
                 LEFT JOIN 
@@ -91,9 +87,7 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
                 LEFT JOIN 
                     cities cy ON cy.id = ad.city_id 
                 LEFT JOIN 
-                    counties ct ON ct.id = ad.county_id 
-                LEFT JOIN
-					advert_favorites adf ON adf.advert_id = ad.id
+                    counties ct ON ct.id = ad.county_id
                 LEFT JOIN
                     advert_images ai ON ai.advert_id = ad.id
                 WHERE 
@@ -205,7 +199,43 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
         }
        
         const data = await pool.query(sqlNonAuthQuery,values);
-        const result = data.rows;
+        let result = data.rows;
+
+        if(result){
+            const favoriteQuery = `
+                SELECT 
+                    ad.id
+                FROM 
+                    advert_favorites adf
+                LEFT JOIN 
+                    users u ON adf.user_id = u.id 
+                LEFT JOIN
+                    adverts ad ON adf.advert_id = ad.id
+                WHERE 
+                    ad.is_deleted = FALSE 
+                        AND 
+                    ad.is_visible = TRUE 
+                        AND 
+                    ad.is_sell = FALSE
+                        AND
+                    u.is_deleted = FALSE
+                        AND
+                    adf.user_id = $1
+                `;
+
+            const favoriteResult = await pool.query(favoriteQuery, [currentUser?.user_id])
+            const favoriteData = favoriteResult.rows;
+
+            const newData = result.map((item: any) => {
+                const hasId = favoriteData.find((idObj: any) => idObj.id == item.id);
+
+                return {
+                    ...item,
+                    has_favorite: hasId ? true : false
+                }
+            })
+            result = newData
+        }
 
         return res.status(200).json(result);
 
