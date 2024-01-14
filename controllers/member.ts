@@ -2,10 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 
 require('dotenv').config();
 const bcrypt = require("bcrypt");
-const jwt = require('jsonwebtoken');
 
 const redis = require('../helpers/redis');
 const pool = require('../helpers/postgre');
+const Image = require('../helpers/uploadImage');
 
 const CustomError = require('../errors/CustomError');
 
@@ -60,14 +60,21 @@ exports.put_member = async function(req: Request, res: Response, next: NextFunct
     const current_email = currentUser.username 
     const user_id = currentUser.user_id
 
-    let fullname = req.body.fullname;
-    let email = req.body.email;
-    let password = req.body.password;
-    let photo = req.body.photo;
-    let about = req.body.about;
-    let phone_number = req.body.phone_number;
+    const fullname = req.body.fullname;
+    const email = req.body.email;
+    const password = req.body.password;
+    const photo = req.files;
+    const about = req.body.about;
+    const phone_number = req.body.password;
 
     try {
+        if (!fullname || fullname == '') {
+            throw new CustomError(403, "fullname alanını belirtmelisiniz.");
+        }
+        if (!email || email == '') {
+            throw new CustomError(403, "email alanını belirtmelisiniz.");
+        }
+
        const oldDataQuery = `
             SELECT 
                 fullname,
@@ -84,17 +91,16 @@ exports.put_member = async function(req: Request, res: Response, next: NextFunct
 
         const statusOldData = await pool.query(oldDataQuery, [current_email]);
         const responseOldData = statusOldData.rows[0];
-        
-        fullname = !fullname || fullname == '' ? responseOldData.fullname : fullname;
-        email = !email || email == '' ? responseOldData.email : email;
-        photo = !photo || photo == '' ? responseOldData.photo : photo;
-        about = !about || about == '' ? responseOldData.about : about;
-        phone_number = !phone_number || phone_number == '' ? responseOldData.phone_number : phone_number;
-        
-        if(!password || password == ''){
-            password = responseOldData.password
+
+        const hashedPass = password && await bcrypt.hashSync(password, 10);
+
+        let selectedPhoto;
+        if(photo){
+            await Image.removeOldImage(responseOldData?.photo ? responseOldData?.photo?.path : '')
+            const uploadImage = await Image.uploadMultipleImages(photo, 'members/' + email  + '/avatar/', fullname);
+            selectedPhoto = JSON.stringify(uploadImage[0]);
         }else{
-            password = await bcrypt.hashSync(password, 10);
+            selectedPhoto = responseOldData.photo
         }
         
         const updateQuery = `
@@ -103,25 +109,27 @@ exports.put_member = async function(req: Request, res: Response, next: NextFunct
             SET
                 fullname = $1,
                 email = $2,
-                photo = $3,
-                about = $4,
-                phone_number = $5,
-                password = $6
+                about = $3,
+                phone_number = $4,
+                password = $5,
+                photo = $6
             WHERE
                 id = $7
         `;
 
-        await pool.query(updateQuery, [
+        const updateValues = [
             fullname,
             email,
-            photo,
             about,
             phone_number,
-            password,
+            hashedPass ? hashedPass : responseOldData.password,
+            selectedPhoto,
             user_id
-        ]);
+        ];
 
-        return res.status(200).json({'success': 'true'});
+        await pool.query(updateQuery, updateValues);
+
+        return res.status(200).json({'success': 'true', photo: selectedPhoto });
 
     }catch (err){
         next(err)
@@ -161,9 +169,9 @@ exports.post_member =  async function(req: Request, res: Response, next: NextFun
         const insertUserQuery = `
             INSERT INTO
                 users
-            (fullname, email, password)
+            (fullname, email, password, user_type)
                 VALUES
-            ($1, $2, $3)
+            ($1, $2, $3, 'CONSUMER')
         `;
        
         await pool.query(insertUserQuery, [fullname, email, passwordHash])
