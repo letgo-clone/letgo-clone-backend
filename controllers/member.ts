@@ -60,22 +60,20 @@ exports.put_member = async function(req: Request, res: Response, next: NextFunct
     const current_email = currentUser.username 
     const user_id = currentUser.user_id
 
-    const fullname = req.body.fullname;
-    const email = req.body.email;
+    let fullname = req.body.fullname;
+    let email = req.body.email;
+    let about = req.body.about;
+    let phone_number = req.body.phone_number;
     const password = req.body.password;
+    const currentPass = req.body.current_pass;
     const photo = req.files;
-    const about = req.body.about;
-    const phone_number = req.body.password;
 
     try {
-        if (!fullname || fullname == '') {
-            throw new CustomError(403, "fullname alanını belirtmelisiniz.");
-        }
-        if (!email || email == '') {
-            throw new CustomError(403, "email alanını belirtmelisiniz.");
+        if (!currentUser || currentUser == '') {
+            throw new CustomError(403);
         }
 
-       const oldDataQuery = `
+        const oldDataQuery = `
             SELECT 
                 fullname,
                 photo,
@@ -92,10 +90,31 @@ exports.put_member = async function(req: Request, res: Response, next: NextFunct
         const statusOldData = await pool.query(oldDataQuery, [current_email]);
         const responseOldData = statusOldData.rows[0];
 
-        const hashedPass = password && await bcrypt.hashSync(password, 10);
+        if (!fullname || fullname == '') {
+            fullname = responseOldData.fullname
+        }
+        if (!email || email == '') {
+            email = responseOldData.email
+        }
+        if (!phone_number) {
+            phone_number = responseOldData.phone_number
+        }
 
+        let hashedPass;
+        if(currentPass && currentPass !== ''){
+            const passCheck = await bcrypt.compare(currentPass, responseOldData.password);
+
+            if(passCheck){
+                hashedPass = await bcrypt.hashSync(password, 10);
+            }else{
+                throw new CustomError(404, "Mevcut şifrenizi kontrol ediniz.", 'invalid_grant');
+            }
+        }
+
+     
         let selectedPhoto;
-        if(photo){
+
+        if(photo && photo.length != 0){
             await Image.removeOldImage(responseOldData?.photo ? responseOldData?.photo?.path : '')
             const uploadImage = await Image.uploadMultipleImages(photo, 'members/' + email  + '/avatar/', fullname);
             selectedPhoto = JSON.stringify(uploadImage[0]);
@@ -122,7 +141,7 @@ exports.put_member = async function(req: Request, res: Response, next: NextFunct
             email,
             about,
             phone_number,
-            hashedPass ? hashedPass : responseOldData.password,
+            hashedPass == undefined ? responseOldData.password : hashedPass,
             selectedPhoto,
             user_id
         ];
