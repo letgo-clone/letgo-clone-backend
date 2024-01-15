@@ -1,8 +1,10 @@
 import express, { Express, Request, Response } from 'express';
 import path from 'path';
 
+require('dotenv').config();
+
 const app: Express = express();
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 
 
 // Cors
