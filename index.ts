@@ -44,7 +44,7 @@ const startUp = async () => {
         console.error(err);
     }
 
-    app.listen(process.env.PROD_ENV || PORT, () => {
+    app.listen(PORT, () => {
         console.log('started at ' + PORT);
     })
 }
