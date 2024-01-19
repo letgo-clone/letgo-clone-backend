@@ -35,7 +35,15 @@ exports.handleToken = async function (req: Request, res: Response, next: NextFun
                         throw new CustomError(401, "Email adresiniz veya şifreniz yanlış olabilir.", 'invalid_grant');
                     }
 
-                    const sqlQuery = "SELECT * FROM users WHERE email = $1";
+                    const sqlQuery = `
+                        SELECT 
+                            * 
+                        FROM 
+                            users 
+                        WHERE 
+                            email = $1
+                        `;
+                        
                     const data = await pool.query(sqlQuery, [username]);
                     const user = data.rows[0];
 
