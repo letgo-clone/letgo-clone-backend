@@ -600,15 +600,17 @@ exports.putAdvertEdit =  async function (req: Request, res: Response, next: Next
         
         const selectQuery = `
             SELECT 
-                id
+                ad.id
             FROM
-                adverts
+                adverts ad
             WHERE
-                id = $1
+                ad.id = $1
             AND
-                is_deleted = FALSE
+                ad.is_deleted = FALSE
+            AND
+                ad.user_id = $2
         `
-        const selectResponse = await pool.query(selectQuery, [advertId]);
+        const selectResponse = await pool.query(selectQuery, [advertId, user_id]);
         const selectResult = selectResponse.rows[0];
 
         if(!selectResult){
