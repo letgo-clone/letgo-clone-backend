@@ -201,7 +201,7 @@ exports.getActualAdvert = async function (req: Request, res: Response, next: Nex
         const data = await pool.query(sqlNonAuthQuery,values);
         let result = data.rows;
 
-        if(result){
+        if(result && currentUser?.user_id){
             const favoriteQuery = `
                 SELECT 
                     ad.id
