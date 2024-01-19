@@ -13,15 +13,15 @@ const config: {
     }
 } = {
     db: {
-        password: 'g-f5ea3G65b43GA-5Bd-E6224Ebd6F*A',
+        password: '123',
         username: 'postgres',
         database: 'letgo_clone',
-        host: 'roundhouse.proxy.rlwy.net',
-        port: 11199
+        host: '127.0.0.1',
+        port: 5432
     },
     redis: {
-        password: 'JIjG4dhn6A1dmd2JnnBJaaAf1LFA3pin',
-        host: 'monorail.proxy.rlwy.net',
+        password: '',
+        host: '',
         port: 36780
     }
 }
