@@ -382,14 +382,9 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
 
     const user_id = parseUser.user_id;
     const email =  parseUser.username;
-    const title = req.body.title;
-    const description = req.body.description;
-    const how_status = req.body.how_status;
-    const price = req.body.price;
-    const city_id = req.body.city_id;
-    const county_id = req.body.county_id;
-    const mainCategoryId = req.body.main_category_id; 
-    const subCategoryId = req.body.sub_category_id; 
+
+    const {title, description, how_status, price, city_id, county_id, main_category_id, sub_category_id} = req.body;
+
     const advertImages = req.files; 
 
     try {
@@ -441,7 +436,7 @@ exports.postAdvert = async function (req: Request, res: Response, next: NextFunc
                 ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
             RETURNING *
             `;
-        const values = [title, description, user_id, how_status, price, city_id, county_id, mainCategoryId, subCategoryId];
+        const values = [title, description, user_id, how_status, price, city_id, county_id, main_category_id, sub_category_id];
 
         const status = await pool.query(insertQuery, values);
         const advert_id = status.rows[0].id;
