@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from 'express';
+import express, { Express, NextFunction, Request, Response } from 'express';
 import path from 'path';
 
 require('dotenv').config();
@@ -15,7 +15,6 @@ const corsOptions = require('./config/corsOptions');
 const redis = require('./helpers/redis');
 
 // Middlewares
-const verifyJWT = require('./middleware/verifyJWT');
 const credentials = require('./middleware/credentials');
 const errorHandler = require('./middleware/errorHandler')
 
@@ -30,7 +29,12 @@ app.use("/static", express.static(path.join(__dirname, "public")));
 
 const authRoutes = require('./routes/auth');
 const advertRoutes = require('./routes/advert');
-const memberRoutes = require('./routes/member')
+const memberRoutes = require('./routes/member');
+
+
+app.get('/', (req: Request, res: Response, next: NextFunction) => {
+    return res.render("home.ejs")
+});
 
 app.use('/oauth', authRoutes);
 app.use('/advert', advertRoutes);
