@@ -31,11 +31,6 @@ const authRoutes = require('./routes/auth');
 const advertRoutes = require('./routes/advert');
 const memberRoutes = require('./routes/member');
 
-
-app.get('/', (req: Request, res: Response, next: NextFunction) => {
-    return res.render("home.ejs")
-});
-
 app.use('/oauth', authRoutes);
 app.use('/advert', advertRoutes);
 app.use('/account', memberRoutes);
