@@ -298,7 +298,7 @@ exports.getAdvertDetail = async function (req: Request, res: Response, next: Nex
         const data = await pool.query(sqlQuery, [advert_id]); 
         const advertDetail = data.rows[0];
 
-        if(advertDetail.length < 1){
+        if(advertDetail == 'undefined'){
             throw new CustomError(404, "veri bulunamadı"); 
         }
         const imagesQuery = `
