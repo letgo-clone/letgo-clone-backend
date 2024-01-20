@@ -27,13 +27,28 @@ const options: swaggerJsdoc.Options = {
       ],
     },
     apis: ["./src/routes/*.ts", "./src/schema/*.ts"],
+  
 };
 
-const swaggerSpec = swaggerJsdoc(options)
+const swaggerSpec = swaggerJsdoc(options);
 
-function swaggerDocs(app: Express, port: number) {
+
+function swaggerDocs(app: Express) {
     // Swagger page
-    app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+      customCss : `
+          .swagger-ui .topbar { 
+            background-color: #ff3f55;
+            padding: 5px 0;
+            text-align: center;
+            color: white
+          }
+          .swagger-ui .topbar svg {
+            display: none
+          }
+        `
+      }
+    ));
   
     // Docs in JSON format
     app.get("/docs.json", (req: Request, res: Response) => {
@@ -41,7 +56,6 @@ function swaggerDocs(app: Express, port: number) {
       res.send(swaggerSpec);
     });
     
-    console.log(`docs available at http://localhost:${port}`)
   }
   
   export default swaggerDocs;

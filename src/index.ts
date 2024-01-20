@@ -51,6 +51,6 @@ const startUp = async () => {
         console.log('started at ' + PORT);
     })
     
-    swaggerDocs(app, PORT)
+    swaggerDocs(app)
 }
 startUp();
