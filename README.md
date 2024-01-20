@@ -35,6 +35,12 @@ CLIENT_SECRET = CLIENT_SECRET
 CLIENT_SECRET_CLIENT = 7f68ee6df7739cda
 CLIENT_SECRET_PASSWORD = d554937a45e5be23
 REFRESH_TOKEN_SECRET = 7c8144e0622325fc956fa5b3fed0e5d43e13372e5a7587b850daf28a1c2b81f966320cc19e01931cf16af7f2ea9137c5e444bda21f27af3d7cd60398862580ef
+DB_PASS = 123
+DB_USER = postgres
+DB_NAME = letgo_clone
+DB_HOST = 127.0.0.1
+DB_PORT = 5432
+REDIS_URL = 
 ```  
 
 * ### STEP 2: You should download and install redis on your computer
@@ -75,6 +81,8 @@ npm run dev
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npx nodemon src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc",
     "debug": "nodemon --exec \"node --inspect-brk=0.0.0.0:9229 --require ts-node/register src/index.ts\""
   },
   "keywords": [],
@@ -110,6 +118,7 @@ npm run dev
     "uuid": "^9.0.1"
   }
 }
+
 ```
 
 
