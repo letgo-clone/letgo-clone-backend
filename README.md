@@ -1,5 +1,7 @@
 # Letgo Clone Backend
 
+![screenshot](https://raw.githubusercontent.com/letgo-clone/letgo-clone-backend/main/public/api-docs.png)
+
 ## Hello Everyone
 I created the backend side with the Rest API (RESTful API) service using NodeJS with Typescript.
 
@@ -72,8 +74,8 @@ npm run dev
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx nodemon index.ts",
-    "debug": "nodemon --exec \"node --inspect-brk=0.0.0.0:9229 --require ts-node/register index.ts\""
+    "dev": "npx nodemon src/index.ts",
+    "debug": "nodemon --exec \"node --inspect-brk=0.0.0.0:9229 --require ts-node/register src/index.ts\""
   },
   "keywords": [],
   "author": "",
@@ -84,6 +86,8 @@ npm run dev
     "@types/multer": "^1.4.11",
     "@types/node": "^20.9.0",
     "@types/pg": "^8.10.9",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.6",
     "nodemon": "^3.0.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
@@ -92,6 +96,7 @@ npm run dev
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
+    "ejs": "^3.1.9",
     "express": "^4.18.2",
     "firebase-admin": "^11.11.1",
     "joi": "^17.11.0",
@@ -100,6 +105,8 @@ npm run dev
     "pg": "^8.11.3",
     "redis": "^4.6.10",
     "sharp": "^0.33.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0",
     "uuid": "^9.0.1"
   }
 }
