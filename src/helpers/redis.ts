@@ -1,8 +1,8 @@
 const Redis = require('redis');
-const config = require('../config/config');
-const redisConfig = config.default.redis;
 
-const RedisClient = Redis.createClient({}); 
+const RedisClient = Redis.createClient({
+    url: process.env.REDIS_URL
+}); 
 
 RedisClient.on('connect', () => {
     console.error('Redis bağlantı başarılı.')
