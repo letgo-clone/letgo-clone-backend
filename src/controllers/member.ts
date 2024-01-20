@@ -57,9 +57,6 @@ exports.put_member = async function(req: Request, res: Response, next: NextFunct
     const getRedisData = await redis.RedisClient.get('currentUser')
     const currentUser = JSON.parse(getRedisData);
 
-    const current_email = currentUser.username 
-    const user_id = currentUser.user_id
-
     let fullname = req.body.fullname;
     let email = req.body.email;
     let about = req.body.about;
@@ -72,6 +69,9 @@ exports.put_member = async function(req: Request, res: Response, next: NextFunct
         if (!currentUser || currentUser == '') {
             throw new CustomError(403);
         }
+
+        const current_email = currentUser.username 
+        const user_id = currentUser.user_id
 
         const oldDataQuery = `
             SELECT 
