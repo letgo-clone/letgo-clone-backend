@@ -9,6 +9,7 @@ const options: swaggerJsdoc.Options = {
       openapi: "3.0.0",
       info: {
         title: "Letgo Clone API Docs",
+        description: `Development By <a href="https://github.com/FRTYZ" target="_blank">Fırat YILDIZ</a>`,
         version,
       },
       components: {
