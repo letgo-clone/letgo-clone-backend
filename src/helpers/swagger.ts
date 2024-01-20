@@ -47,7 +47,7 @@ function swaggerDocs(app: Express) {
           .swagger-ui .topbar svg {
             display: none
           }
-        `
+        `,
         customSiteTitle: 'Letgo Clone API'
       }
     ));
