@@ -4,7 +4,7 @@ import path from 'path';
 require('dotenv').config();
 
 const app: Express = express();
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 
 // Swagger
 import swaggerDocs from './helpers/swagger';
