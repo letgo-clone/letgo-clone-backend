@@ -15,8 +15,8 @@ I created the backend side with the Rest API (RESTful API) service using NodeJS 
 * PostgreSQL
 * Firebase
 
-## Deploy (Render)
-https://letgo-backend.onrender.com
+## Deploy (Railway)
+https://letgo-clone-backend-production.up.railway.app/
 
 ## Requirements
 * NodeJS (min v20.10.0)
